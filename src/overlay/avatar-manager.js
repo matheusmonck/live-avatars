@@ -50,5 +50,12 @@ export function criarGerenciador(cena, cfg) {
     for (const u of registry.expirarInativos(Date.now())) removerVisual(u);
   }, 5000);
 
-  return { tratar };
+  function configurar(novo) {
+    registry.configurar({
+      limite: novo.limiteAvatares,
+      inatividadeMs: novo.inatividadeSegundos * 1000,
+    });
+  }
+
+  return { tratar, configurar };
 }

@@ -26,3 +26,22 @@ test('broadcast entrega evento a um cliente conectado', async () => {
   bridge.fechar();
   await new Promise(r => http.close(r));
 });
+
+test('aoConectar envia mensagem inicial ao novo cliente', async () => {
+  const http = createServer();
+  const bridge = criarBridge(http, (ws) => ws.send(JSON.stringify({ tipo: 'config', limiteAvatares: 7 })));
+  await new Promise(r => http.listen(0, r));
+  const porta = http.address().port;
+
+  const cliente = new WebSocket(`ws://localhost:${porta}`);
+  const recebidos = [];
+  cliente.on('message', (m) => recebidos.push(JSON.parse(m.toString())));
+  await new Promise(r => cliente.on('open', r));
+  await esperar(50);
+
+  expect(recebidos).toEqual([{ tipo: 'config', limiteAvatares: 7 }]);
+
+  cliente.close();
+  bridge.fechar();
+  await new Promise(r => http.close(r));
+});

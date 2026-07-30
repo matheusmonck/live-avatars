@@ -9,7 +9,13 @@ const MODO_SIM = process.argv.includes('--sim');
 function main() {
   const cfg = carregarConfig();
   const http = criarServidorEstatico();
-  const bridge = criarBridge(http);
+  const bridge = criarBridge(http, (ws) => {
+    ws.send(JSON.stringify({
+      tipo: 'config',
+      limiteAvatares: cfg.limiteAvatares,
+      inatividadeSegundos: cfg.inatividadeSegundos,
+    }));
+  });
 
   process.on('SIGINT', () => {
     console.log('\n  Encerrando Live Avatars...');

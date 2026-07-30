@@ -1,8 +1,9 @@
 import { WebSocketServer } from 'ws';
 
 // Anexa um servidor WebSocket a um http.Server existente e permite broadcast.
-export function criarBridge(httpServer) {
+export function criarBridge(httpServer, aoConectar) {
   const wss = new WebSocketServer({ server: httpServer });
+  if (aoConectar) wss.on('connection', (ws) => aoConectar(ws));
 
   return {
     broadcast(evento) {

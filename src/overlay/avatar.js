@@ -41,6 +41,7 @@ export function criarAvatarVisual({ usuario, estilo }, cena) {
     let t = 0;
     const dur = 400, altura = 34;
     const anim = (ticker) => {
+      if (raiz.destroyed) { cena.app.ticker.remove(anim); return; }
       t += ticker.deltaMS;
       const p = Math.min(1, t / dur);
       raiz.y = base - Math.sin(p * Math.PI) * altura;
@@ -51,6 +52,7 @@ export function criarAvatarVisual({ usuario, estilo }, cena) {
 
   function sair(aoFim) {
     saindo = true;
+    pausado = false; // um avatar em destaque/pausado ainda precisa andar pra fora
     direcao = raiz.x < cena.app.screen.width / 2 ? -1 : 1;
     velocidade = 0.12;
     const anim = (ticker) => {

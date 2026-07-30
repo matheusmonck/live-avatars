@@ -48,3 +48,13 @@ test('exatamente no limite de inatividade NÃO expira (grace de 1ms)', () => {
   expect(r.expirarInativos(2000)).toEqual([]);   // diff === 1000, não expira
   expect(r.expirarInativos(2001)).toEqual(['a']); // diff > 1000, expira
 });
+
+test('configurar altera limite e inatividade em tempo real', () => {
+  const r = criarRegistry({ limite: 1, inatividadeMs: 1000 });
+  r.registrar('a', 100);
+  r.configurar({ limite: 2, inatividadeMs: 5000 });
+  const res = r.registrar('b', 200); // agora cabe sem remover ninguém
+  expect(res.removidos).toEqual([]);
+  expect(r.tem('a')).toBe(true);
+  expect(r.expirarInativos(2000)).toEqual([]); // 'a' inativo há 1900ms < 5000ms
+});

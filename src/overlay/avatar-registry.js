@@ -46,6 +46,11 @@ export function criarRegistry({ limite, inatividadeMs }) {
       return removidos;
     },
 
+    configurar({ limite: novoLimite, inatividadeMs: novaInatividade } = {}) {
+      if (Number.isFinite(novoLimite)) limite = novoLimite;
+      if (Number.isFinite(novaInatividade)) inatividadeMs = novaInatividade;
+    },
+
     tem(usuario) { return avatares.has(usuario); },
     lista() { return [...avatares.values()].map(a => ({ ...a })); },
   };

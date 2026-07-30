@@ -52,7 +52,7 @@ export function reacaoSeguir(cena, avatar, nome) { // confete + faixa
   let t = 0;
   const anim = (ticker) => {
     t += ticker.deltaMS;
-    if (t > 2500) { faixa.alpha -= 0.02; }
+    if (t > 2500) faixa.alpha = Math.max(0, 1 - (t - 2500) / 800);
     if (faixa.alpha <= 0) { cena.app.ticker.remove(anim); faixa.destroy(); }
   };
   cena.app.ticker.add(anim);
@@ -90,6 +90,7 @@ export function reacaoPresente(cena, avatar, evento) {
   let t = 0;
   const subir = 700;
   const animar = (ticker) => {
+    if (avatar.raiz.destroyed) { cena.app.ticker.remove(animar); return; }
     t += ticker.deltaMS;
     const p = Math.min(1, t / subir);
     avatar.raiz.x = inicio.x + (alvo.x - inicio.x) * p;
@@ -98,13 +99,15 @@ export function reacaoPresente(cena, avatar, evento) {
     if (p >= 1) {
       cena.app.ticker.remove(animar);
       explodirConfete(cena, alvo.x, alvo.y, e.confetes);
-      setTimeout(() => voltar(), e.duracaoMs);
+      setTimeout(() => { if (!avatar.raiz.destroyed) voltar(); }, e.duracaoMs);
     }
   };
   function voltar() {
+    if (avatar.raiz.destroyed) return;
     let t2 = 0;
     const de = { x: avatar.raiz.x, y: avatar.raiz.y, s: avatar.raiz.scale.x };
     const anim2 = (ticker) => {
+      if (avatar.raiz.destroyed) { cena.app.ticker.remove(anim2); return; }
       t2 += ticker.deltaMS;
       const p = Math.min(1, t2 / 500);
       avatar.raiz.x = de.x + (inicio.x - de.x) * p;

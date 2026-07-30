@@ -6,7 +6,8 @@ export function conectarWS({ aoEvento, aoStatus }) {
     ws = new WebSocket(url);
     ws.onopen = () => aoStatus('conectado');
     ws.onmessage = (ev) => {
-      try { aoEvento(JSON.parse(ev.data)); } catch {}
+      try { aoEvento(JSON.parse(ev.data)); }
+      catch (err) { console.warn('overlay: frame inválido ignorado', err); }
     };
     ws.onclose = () => {
       aoStatus('reconectando');
