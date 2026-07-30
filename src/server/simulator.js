@@ -1,13 +1,13 @@
-export const TIPOS_SIMULAVEIS = ['comentario', 'entrar', 'curtida', 'seguir', 'presente', 'compartilhar'];
+export const SIMULATABLE_TYPES = ['comentario', 'entrar', 'curtida', 'seguir', 'presente', 'compartilhar'];
 
 // Poucos espectadores recorrentes: como numa live real, as mesmas pessoas voltam
 // a interagir. Isso mantém a quantidade de avatares baixa e natural (≤ este pool),
 // em vez de encher até o limite com nomes sempre novos.
-const NOMES = ['ana.costa', 'bruninho', 'carla_m', 'dan', 'fefa', 'gustavo_tk', 'isa', 'joao.p'];
+const NAMES = ['ana.costa', 'bruninho', 'carla_m', 'dan', 'fefa', 'gustavo_tk', 'isa', 'joao.p'];
 
 // Distribuição realista de eventos: curtida e comentário dominam; seguir, presente
 // e compartilhar são bem mais raros. (peso = chance relativa)
-const PESOS_TIPO = [
+const TYPE_WEIGHTS = [
   ['curtida', 45],
   ['comentario', 30],
   ['entrar', 12],
@@ -17,45 +17,45 @@ const PESOS_TIPO = [
 ];
 
 // Presentes: os baratos são comuns, os caros raros.
-const PRESENTES = [
-  { nome: 'rosa', moedas: 1, peso: 50 },
-  { nome: 'sorvete', moedas: 5, peso: 30 },
-  { nome: 'chapeu', moedas: 50, peso: 14 },
-  { nome: 'leao', moedas: 300, peso: 5 },
-  { nome: 'foguete', moedas: 1000, peso: 1 },
+const GIFTS = [
+  { name: 'rosa', coins: 1, weight: 50 },
+  { name: 'sorvete', coins: 5, weight: 30 },
+  { name: 'chapeu', coins: 50, weight: 14 },
+  { name: 'leao', coins: 300, weight: 5 },
+  { name: 'foguete', coins: 1000, weight: 1 },
 ];
 
 // Escolha ponderada: sorteia um item proporcional ao seu peso, com `r` em 0..1.
-function escolherPeso(itens, peso, r) {
-  const total = itens.reduce((s, it) => s + peso(it), 0);
+function weightedPick(itens, weight, r) {
+  const total = itens.reduce((s, it) => s + weight(it), 0);
   let x = r * total;
-  for (const it of itens) { const p = peso(it); if (x < p) return it; x -= p; }
+  for (const it of itens) { const p = weight(it); if (x < p) return it; x -= p; }
   return itens[itens.length - 1];
 }
 
 // `rnd` injetável (retorna 0..1) pra testes determinísticos.
-export function gerarEventoAleatorio(rnd = Math.random) {
-  const usuario = NOMES[Math.floor(rnd() * NOMES.length) % NOMES.length];
-  const tipo = escolherPeso(PESOS_TIPO, (t) => t[1], rnd())[0];
-  const evento = { tipo, usuario, nome: usuario, fotoUrl: `https://i.pravatar.cc/80?u=${usuario}` };
-  if (tipo === 'curtida') evento.quantidade = Math.floor(rnd() * 10) + 1;
-  if (tipo === 'presente') {
-    const p = escolherPeso(PRESENTES, (g) => g.peso, rnd());
-    evento.presente = p.nome;
-    evento.valorMoedas = p.moedas;
+export function randomEvent(rnd = Math.random) {
+  const username = NAMES[Math.floor(rnd() * NAMES.length) % NAMES.length];
+  const type = weightedPick(TYPE_WEIGHTS, (t) => t[1], rnd())[0];
+  const event = { tipo: type, usuario: username, nome: username, fotoUrl: `https://i.pravatar.cc/80?u=${username}` };
+  if (type === 'curtida') event.quantidade = Math.floor(rnd() * 10) + 1;
+  if (type === 'presente') {
+    const p = weightedPick(GIFTS, (g) => g.weight, rnd());
+    event.presente = p.name;
+    event.valorMoedas = p.coins;
   }
-  return evento;
+  return event;
 }
 
 // Dispara eventos com intervalo variável (mais orgânico que uma batida fixa).
 // Retorna função pra parar.
-export function iniciarSimulador(aoEvento, { min = 700, max = 2200, rnd = Math.random } = {}) {
-  let parado = false;
+export function startSimulator(onEvent, { min = 700, max = 2200, rnd = Math.random } = {}) {
+  let stopped = false;
   let timer = null;
-  const agendar = () => {
-    if (parado) return;
-    timer = setTimeout(() => { aoEvento(gerarEventoAleatorio()); agendar(); }, min + rnd() * (max - min));
+  const schedule = () => {
+    if (stopped) return;
+    timer = setTimeout(() => { onEvent(randomEvent(rnd)); schedule(); }, min + rnd() * (max - min));
   };
-  agendar();
-  return () => { parado = true; if (timer) clearTimeout(timer); };
+  schedule();
+  return () => { stopped = true; if (timer) clearTimeout(timer); };
 }

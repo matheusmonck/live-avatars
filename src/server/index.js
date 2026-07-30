@@ -3,7 +3,7 @@ import { loadConfig } from './config.js';
 import { createStaticServer } from './static-server.js';
 import { createBridge } from './bridge.js';
 import { createConnector } from './connector.js';
-import { iniciarSimulador } from './simulator.js';
+import { startSimulator } from './simulator.js';
 
 const MODO_SIM = process.argv.includes('--sim');
 
@@ -41,7 +41,7 @@ function main() {
 
   if (MODO_SIM) {
     console.log('  MODO SIMULADOR: gerando eventos falsos.\n');
-    iniciarSimulador((e) => bridge.broadcast(e));
+    startSimulator((e) => bridge.broadcast(e));
     return;
   }
 
