@@ -1,6 +1,6 @@
 import { createScene } from './scene.js';
 import { conectarWS } from './ws-client.js';
-import { criarGerenciador } from './avatar-manager.js';
+import { createManager } from './avatar-manager.js';
 import { loadCharacters } from './characters.js';
 
 // Valores padrão só até o backend enviar o frame { tipo: 'config' } (fonte de
@@ -11,12 +11,12 @@ const statusEl = document.getElementById('status');
 
 const scene = await createScene(document.getElementById('palco'));
 await loadCharacters();
-const gerenciador = criarGerenciador(scene, CFG_PADRAO);
+const manager = createManager(scene, CFG_PADRAO);
 
 conectarWS({
   aoEvento: (evento) => {
-    if (evento.tipo === 'config') { gerenciador.configurar(evento); return; }
-    gerenciador.tratar(evento);
+    if (evento.tipo === 'config') { manager.configure(evento); return; }
+    manager.handle(evento);
   },
   aoStatus: (s) => {
     statusEl.textContent = s === 'conectado' ? '' : (s === 'reconectando' ? 'reconectando…' : s);

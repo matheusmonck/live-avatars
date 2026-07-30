@@ -3,60 +3,60 @@ import { createThrottle } from './throttle.js';
 import { createAvatarVisual } from './avatar.js';
 import * as R from './reactions.js';
 
-export function criarGerenciador(scene, cfg) {
+export function createManager(scene, cfg) {
   const registry = createRegistry({
     limit: cfg.limiteAvatares,
     inactivityMs: cfg.inatividadeSegundos * 1000,
   });
   const throttle = createThrottle(1500);
-  const TIPOS_THROTTLED = new Set(['curtida', 'seguir', 'compartilhar']);
-  const visuais = new Map(); // usuario -> avatarVisual
+  const THROTTLED_TYPES = new Set(['curtida', 'seguir', 'compartilhar']);
+  const visuals = new Map(); // usuario -> avatarVisual
 
-  function garantir(evento) {
-    const result = registry.register(evento.usuario, Date.now());
-    for (const u of result.removed) removerVisual(u);
+  function ensure(event) {
+    const result = registry.register(event.usuario, Date.now());
+    for (const u of result.removed) removeVisual(u);
     if (result.isNew) {
       const v = createAvatarVisual(result.avatar, scene);
-      visuais.set(evento.usuario, v);
+      visuals.set(event.usuario, v);
     }
-    return visuais.get(evento.usuario);
+    return visuals.get(event.usuario);
   }
 
-  function removerVisual(usuario) {
-    const v = visuais.get(usuario);
-    if (v) { visuais.delete(usuario); v.leave(); }
+  function removeVisual(usuario) {
+    const v = visuals.get(usuario);
+    if (v) { visuals.delete(usuario); v.leave(); }
   }
 
-  function tratar(evento) {
-    if (TIPOS_THROTTLED.has(evento.tipo) && !throttle.allow(evento.tipo + ':' + evento.usuario)) return;
-    const v = garantir(evento);
+  function handle(event) {
+    if (THROTTLED_TYPES.has(event.tipo) && !throttle.allow(event.tipo + ':' + event.usuario)) return;
+    const v = ensure(event);
     if (!v) return;
-    switch (evento.tipo) {
+    switch (event.tipo) {
       case 'comentario': v.jump(); break;
       case 'entrar': break; // já entrou andando ao ser criado
-      case 'curtida': R.reacaoCuracao(scene, v); break;
-      case 'seguir': R.reacaoSeguir(scene, v, evento.nome || evento.usuario); break;
-      case 'compartilhar': R.reacaoEstrelas(scene, v); break;
-      case 'presente': R.reacaoPresente(scene, v, evento); break;
+      case 'curtida': R.reactionHearts(scene, v); break;
+      case 'seguir': R.reactionFollow(scene, v, event.nome || event.usuario); break;
+      case 'compartilhar': R.reactionStars(scene, v); break;
+      case 'presente': R.reactionGift(scene, v, event); break;
     }
   }
 
   // Andar contínuo de todos os avatares.
   scene.app.ticker.add((ticker) => {
-    for (const v of visuais.values()) v.walk(ticker.deltaMS);
+    for (const v of visuals.values()) v.walk(ticker.deltaMS);
   });
 
   // Expiração por inatividade a cada 5s.
   setInterval(() => {
-    for (const u of registry.expireInactive(Date.now())) removerVisual(u);
+    for (const u of registry.expireInactive(Date.now())) removeVisual(u);
   }, 5000);
 
-  function configurar(novo) {
+  function configure(newCfg) {
     registry.configure({
-      limit: novo.limiteAvatares,
-      inactivityMs: novo.inatividadeSegundos * 1000,
+      limit: newCfg.limiteAvatares,
+      inactivityMs: newCfg.inatividadeSegundos * 1000,
     });
   }
 
-  return { tratar, configurar };
+  return { handle, configure };
 }
