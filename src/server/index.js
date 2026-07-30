@@ -1,6 +1,6 @@
 import { UserOfflineError } from 'tiktok-live-connector';
 import { loadConfig } from './config.js';
-import { criarServidorEstatico } from './static-server.js';
+import { createStaticServer } from './static-server.js';
 import { createBridge } from './bridge.js';
 import { criarConnector } from './connector.js';
 import { iniciarSimulador } from './simulator.js';
@@ -9,7 +9,7 @@ const MODO_SIM = process.argv.includes('--sim');
 
 function main() {
   const cfg = loadConfig();
-  const http = criarServidorEstatico();
+  const http = createStaticServer();
   const bridge = createBridge(http, (ws) => {
     ws.send(JSON.stringify({
       tipo: 'config',
