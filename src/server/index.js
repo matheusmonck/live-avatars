@@ -1,5 +1,5 @@
 import { UserOfflineError } from 'tiktok-live-connector';
-import { carregarConfig } from './config.js';
+import { loadConfig } from './config.js';
 import { criarServidorEstatico } from './static-server.js';
 import { criarBridge } from './bridge.js';
 import { criarConnector } from './connector.js';
@@ -8,19 +8,19 @@ import { iniciarSimulador } from './simulator.js';
 const MODO_SIM = process.argv.includes('--sim');
 
 function main() {
-  const cfg = carregarConfig();
+  const cfg = loadConfig();
   const http = criarServidorEstatico();
   const bridge = criarBridge(http, (ws) => {
     ws.send(JSON.stringify({
       tipo: 'config',
-      limiteAvatares: cfg.limiteAvatares,
-      inatividadeSegundos: cfg.inatividadeSegundos,
+      limiteAvatares: cfg.avatarLimit,
+      inatividadeSegundos: cfg.inactivitySeconds,
     }));
   });
 
   http.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-      console.error(`\n  A porta ${cfg.porta} já está em uso. Feche a outra janela do Live Avatars (ou mude "porta" no config/config.json) e tente de novo.\n`);
+      console.error(`\n  A porta ${cfg.port} já está em uso. Feche a outra janela do Live Avatars (ou mude "porta" no config/config.json) e tente de novo.\n`);
       process.exit(1);
     }
     throw err;
@@ -33,9 +33,9 @@ function main() {
     process.exit(0);
   });
 
-  http.listen(cfg.porta, () => {
+  http.listen(cfg.port, () => {
     console.log(`\n  Live Avatars no ar 🎉`);
-    console.log(`  Overlay:  http://localhost:${cfg.porta}`);
+    console.log(`  Overlay:  http://localhost:${cfg.port}`);
     console.log(`  (adicione essa URL como Fonte de Navegador no TikTok Live Studio)\n`);
   });
 
@@ -55,19 +55,19 @@ function main() {
 }
 
 function conectarComRetry(cfg, bridge) {
-  const connector = criarConnector(cfg.usuarioTikTok, {
+  const connector = criarConnector(cfg.username, {
     signApiKey: cfg.signApiKey,
     aoEvento: (e) => bridge.broadcast(e),
     aoStatus: (s) => {
-      if (s.estado === 'conectado') console.log(`  Conectado à live de @${cfg.usuarioTikTok} ✅`);
+      if (s.estado === 'conectado') console.log(`  Conectado à live de @${cfg.username} ✅`);
       if (s.estado === 'desconectado') tentarReconectar(cfg, bridge, 'live encerrada/queda');
     },
   });
   connector.conectar().catch((err) => {
     const offline = err instanceof UserOfflineError;
     const motivo = offline
-      ? `@${cfg.usuarioTikTok} não está ao vivo agora`
-      : `falha ao conectar em @${cfg.usuarioTikTok} (${String(err?.message ?? err).slice(0, 120)})`;
+      ? `@${cfg.username} não está ao vivo agora`
+      : `falha ao conectar em @${cfg.username} (${String(err?.message ?? err).slice(0, 120)})`;
     tentarReconectar(cfg, bridge, motivo);
   });
 }
