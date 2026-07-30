@@ -1,4 +1,4 @@
-import { escalaPresente } from './gift-scale.js';
+import { giftScale } from './gift-scale.js';
 
 function particula(cena, x, y, cor, forma = 'circulo') {
   const g = new PIXI.Graphics();
@@ -82,7 +82,7 @@ function explodirConfete(cena, x, y, quantidade) {
 
 // Presente: leva o avatar pro destaque, aplica escala e confete proporcional.
 export function reacaoPresente(cena, avatar, evento) {
-  const e = escalaPresente(evento.valorMoedas);
+  const fx = giftScale(evento.valorMoedas);
   const alvo = cena.pontoDestaque();
   const inicio = avatar.posicao();
   const base = cena.linhaChao();
@@ -96,11 +96,11 @@ export function reacaoPresente(cena, avatar, evento) {
     const p = Math.min(1, t / subir);
     avatar.raiz.x = inicio.x + (alvo.x - inicio.x) * p;
     avatar.raiz.y = inicio.y + (alvo.y - inicio.y) * p;
-    avatar.raiz.scale.set(1 + (e.escala - 1) * p);
+    avatar.raiz.scale.set(1 + (fx.scale - 1) * p);
     if (p >= 1) {
       cena.app.ticker.remove(animar);
-      explodirConfete(cena, alvo.x, alvo.y, e.confetes);
-      setTimeout(() => { if (!avatar.raiz.destroyed) voltar(); }, e.duracaoMs);
+      explodirConfete(cena, alvo.x, alvo.y, fx.confetti);
+      setTimeout(() => { if (!avatar.raiz.destroyed) voltar(); }, fx.durationMs);
     }
   };
   function voltar() {

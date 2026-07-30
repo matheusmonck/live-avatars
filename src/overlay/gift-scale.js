@@ -1,11 +1,7 @@
 // Traduz o valor em moedas de um presente no tamanho/duração do efeito visual.
-export function escalaPresente(valorMoedas) {
-  const v = Number.isFinite(Number(valorMoedas)) ? Number(valorMoedas) : 0;
-  if (v > 100) {
-    return { nivel: 'grande', escala: 2.6, duracaoMs: 5000, confetes: 160 };
-  }
-  if (v > 5) {
-    return { nivel: 'medio', escala: 2.0, duracaoMs: 3500, confetes: 70 };
-  }
-  return { nivel: 'pequeno', escala: 1.4, duracaoMs: 2500, confetes: 18 };
+export function giftScale(coins) {
+  const v = Number.isFinite(Number(coins)) ? Number(coins) : 0;
+  if (v > 100) return { level: 'large', scale: 2.6, durationMs: 5000, confetti: 160 };
+  if (v > 5) return { level: 'medium', scale: 2.0, durationMs: 3500, confetti: 70 };
+  return { level: 'small', scale: 1.4, durationMs: 2500, confetti: 18 };
 }

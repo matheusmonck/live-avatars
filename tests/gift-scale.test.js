@@ -1,31 +1,23 @@
 import { test, expect } from 'vitest';
-import { escalaPresente } from '../src/overlay/gift-scale.js';
+import { giftScale } from '../src/overlay/gift-scale.js';
 
 test('presente barato = efeito pequeno', () => {
-  const e = escalaPresente(1);
-  expect(e.nivel).toBe('pequeno');
-  expect(e.escala).toBeCloseTo(1.4);
-  expect(e.confetes).toBeLessThanOrEqual(20);
+  const e = giftScale(1);
+  expect(e.level).toBe('small');
+  expect(e.scale).toBeCloseTo(1.4);
+  expect(e.confetti).toBeLessThanOrEqual(20);
 });
-
-test('presente médio', () => {
-  expect(escalaPresente(50).nivel).toBe('medio');
-});
-
+test('presente médio', () => { expect(giftScale(50).level).toBe('medium'); });
 test('presente caro = explosão', () => {
-  const e = escalaPresente(500);
-  expect(e.nivel).toBe('grande');
-  expect(e.confetes).toBeGreaterThanOrEqual(120);
-  expect(e.duracaoMs).toBeGreaterThanOrEqual(4000);
+  const e = giftScale(500);
+  expect(e.level).toBe('large');
+  expect(e.confetti).toBeGreaterThanOrEqual(120);
+  expect(e.durationMs).toBeGreaterThanOrEqual(4000);
 });
-
-test('valor inválido cai no pequeno', () => {
-  expect(escalaPresente(undefined).nivel).toBe('pequeno');
-});
-
+test('valor inválido cai no pequeno', () => { expect(giftScale(undefined).level).toBe('small'); });
 test('fronteiras exatas dos níveis', () => {
-  expect(escalaPresente(5).nivel).toBe('pequeno');
-  expect(escalaPresente(6).nivel).toBe('medio');
-  expect(escalaPresente(100).nivel).toBe('medio');
-  expect(escalaPresente(101).nivel).toBe('grande');
+  expect(giftScale(5).level).toBe('small');
+  expect(giftScale(6).level).toBe('medium');
+  expect(giftScale(100).level).toBe('medium');
+  expect(giftScale(101).level).toBe('large');
 });
