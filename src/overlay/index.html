@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>Live Avatars</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+    #palco { position: fixed; inset: 0; }
+    #status { position: fixed; top: 8px; left: 8px; font: 12px system-ui; color: #fff;
+      background: #0006; padding: 4px 8px; border-radius: 6px; }
+    #status.ok { display: none; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@8.6.6/dist/pixi.min.js"></script>
+</head>
+<body>
+  <div id="palco"></div>
+  <div id="status">conectando…</div>
+  <script type="module" src="./overlay.js"></script>
+</body>
+</html>
