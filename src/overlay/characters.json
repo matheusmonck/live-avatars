@@ -1,0 +1,15 @@
+{
+  "characters": [
+    { "id": "hero" },
+    { "id": "cap" },
+    { "id": "dog" },
+    { "id": "frog" },
+    { "id": "girl" },
+    { "id": "hood" },
+    { "id": "kid" },
+    { "id": "miner" },
+    { "id": "oldwoman" },
+    { "id": "sage" },
+    { "id": "woman" }
+  ]
+}

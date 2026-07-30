@@ -1,97 +1,87 @@
-// Personagens CC0 (Ansimuz, "Top Down Adventure Assets") — 16x16, 2 quadros de caminhada.
-export const CHARACTERS = [
-  "hero",
-  "cap",
-  "dog",
-  "frog",
-  "girl",
-  "hood",
-  "kid",
-  "miner",
-  "oldwoman",
-  "sage",
-  "woman",
-  "robo",
-  "link-minish-cap",
-];
+// Roster de personagens orientado a dados: characters.json (repo, CC0 padrão) +
+// characters.local.json (gitignored, sprites do usuário). Sprites de 16x16, N quadros.
+const ANIM_SPEED = 0.06;          // troca de quadro por ms de ticker
+const DEFAULTS = { frames: 2, scale: 2, facing: 'front' };
 
-const SCALE = 2; // escala padrão: 16px -> 64px
-const ANIM_SPEED = 0.06; // troca de quadro por ms de ticker
-const DEFAULT_FRAMES = 2; // nº de quadros de um personagem quando não há override
-
-// Overrides por personagem — liste só o que fugir do padrão:
-//   FRAMES: quantos quadros de animação (arquivos <nome>/1.png ... <nome>/N.png).
-//   SCALES: fator de ampliação; use se o PNG não for 16x16 (ex.: PNG 32x32 -> escala 2).
-const FRAMES = { robo: 4, "link-minish-cap": 10 };
-const SCALES = { "link-minish-cap": 2 };
-// Para que lado a ARTE aponta (não a direção do movimento). O avatar espelha o
-// sprite pra andar na direção certa; arte 'frente' (padrão) nunca é espelhada.
-//   'frente'   -> personagem de frente/simétrico (ansimuz, robo): não vira
-//   'esquerda' -> arte desenhada olhando pra esquerda (ex.: link-minish-cap)
-//   'direita'  -> arte desenhada olhando pra direita
-const FACING = { "link-minish-cap": "left" };
-
-function framesOf(name) {
-  return FRAMES[name] ?? DEFAULT_FRAMES;
-}
-function scaleOf(name) {
-  return SCALES[name] ?? SCALE;
-}
-function facingOf(name) {
-  return FACING[name] ?? "front";
-}
-
-// Cada personagem tem sua própria pasta: assets/characters/<nome>/1.png ... N.png
-function urls(name) {
-  return Array.from(
-    { length: framesOf(name) },
-    (_, i) => `assets/characters/${name}/${i + 1}.png`,
-  );
-}
-
-// Hash estável (djb2) -> personagem fixo por usuário.
-export function characterForUser(username) {
+// Seleção determinística (djb2) — pura e testável, sem PIXI/fetch.
+export function pickId(username, ids) {
   let h = 5381;
   for (let i = 0; i < username.length; i++)
     h = ((h << 5) + h + username.charCodeAt(i)) >>> 0;
-  return CHARACTERS[h % CHARACTERS.length];
+  return ids[h % ids.length];
 }
 
-const cache = new Map(); // nome -> [Texture, Texture]
+// Aplica defaults a uma entrada bruta do roster e fixa a pasta base.
+export function resolveEntry(entry, base) {
+  return {
+    id: entry.id,
+    frames: entry.frames ?? DEFAULTS.frames,
+    scale: entry.scale ?? DEFAULTS.scale,
+    facing: entry.facing ?? DEFAULTS.facing,
+    base,
+  };
+}
+
+function urlsFor(entry) {
+  return Array.from({ length: entry.frames }, (_, i) => `${entry.base}/${entry.id}/${i + 1}.png`);
+}
+
+let roster = [];                  // entradas resolvidas, populado no load
+const cache = new Map();          // id -> [Texture, ...]
+
+async function fetchRoster(url, base) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data?.characters ?? []).map((e) => resolveEntry(e, base));
+  } catch {
+    return [];
+  }
+}
 
 // Pré-carrega todas as texturas (chamar 1x antes de criar avatares).
 export async function loadCharacters() {
-  const all = CHARACTERS.flatMap(urls);
+  const defaults = await fetchRoster('characters.json', 'assets/characters');
+  if (!defaults.length) throw new Error('characters.json ausente ou vazio');
+  const locals = await fetchRoster('characters.local.json', 'assets/characters-local');
+
+  const byId = new Map();
+  for (const e of defaults) byId.set(e.id, e);
+  for (const e of locals) byId.set(e.id, e); // id local vence colisão
+  roster = [...byId.values()];
+
+  const all = roster.flatMap(urlsFor);
   const map = await PIXI.Assets.load(all);
   for (const u of all) {
     const t = map[u];
-    if (t?.source) t.source.scaleMode = "nearest";
-  } // pixel nítido
-  for (const name of CHARACTERS)
-    cache.set(
-      name,
-      urls(name).map((u) => map[u]),
-    );
+    if (t?.source) t.source.scaleMode = 'nearest'; // pixel nítido
+  }
+  for (const e of roster) cache.set(e.id, urlsFor(e).map((u) => map[u]));
+}
+
+// Personagem fixo por usuário (hash estável sobre o roster carregado).
+export function characterForUser(username) {
+  return pickId(username, roster.map((e) => e.id));
 }
 
 // Cria o AnimatedSprite do personagem do usuário (texturas já pré-carregadas).
 export function createCharacterSprite(username) {
-  const name = characterForUser(username);
-  const frames = cache.get(name);
-  const sprite = new PIXI.AnimatedSprite(frames);
+  const id = characterForUser(username);
+  const entry = roster.find((e) => e.id === id);
+  const sprite = new PIXI.AnimatedSprite(cache.get(id));
   sprite.anchor.set(0.5, 1); // "pés" na origem (linha do chão)
-  const scale = scaleOf(name);
-  sprite.scale.set(scale);
+  sprite.scale.set(entry.scale);
   sprite.animationSpeed = ANIM_SPEED;
   sprite.play();
 
   // Espelha o sprite pra olhar na direção do movimento (+1 direita, -1 esquerda).
-  // Arte 'frente' não vira; 'esquerda'/'direita' viram conforme a convenção.
-  const facing = facingOf(name);
+  // Arte 'front' não vira; 'left'/'right' viram conforme a convenção.
+  const facing = entry.facing;
   sprite.faceTo = (direction) => {
-    if (facing === "front") return;
-    const facesLeft = facing === "left";
-    sprite.scale.x = scale * ((direction === -1) === facesLeft ? 1 : -1);
+    if (facing === 'front') return;
+    const facesLeft = facing === 'left';
+    sprite.scale.x = entry.scale * ((direction === -1) === facesLeft ? 1 : -1);
   };
   return sprite;
 }

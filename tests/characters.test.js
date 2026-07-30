@@ -1,11 +1,26 @@
 import { test, expect } from 'vitest';
-import { characterForUser, CHARACTERS } from '../src/overlay/characters.js';
+import { pickId, resolveEntry } from '../src/overlay/characters.js';
 
-test('personagem é determinístico por usuário', () => {
-  expect(characterForUser('fulano')).toBe(characterForUser('fulano'));
+const IDS = ['hero', 'cap', 'dog', 'frog', 'girl'];
+
+test('pickId é determinístico por usuário', () => {
+  expect(pickId('fulano', IDS)).toBe(pickId('fulano', IDS));
 });
-test('sempre retorna um personagem válido do roster', () => {
-  for (const u of ['a','bruno','carla123','xyz','zzz']) {
-    expect(CHARACTERS).toContain(characterForUser(u));
+
+test('pickId sempre retorna um id do roster', () => {
+  for (const u of ['ana', 'bruno', 'carla', 'xyz']) {
+    expect(IDS).toContain(pickId(u, IDS));
   }
+});
+
+test('resolveEntry aplica defaults', () => {
+  expect(resolveEntry({ id: 'hero' }, 'assets/characters')).toEqual({
+    id: 'hero', frames: 2, scale: 2, facing: 'front', base: 'assets/characters',
+  });
+});
+
+test('resolveEntry respeita overrides', () => {
+  expect(resolveEntry({ id: 'link-minish-cap', frames: 10, facing: 'left' }, 'assets/characters-local')).toEqual({
+    id: 'link-minish-cap', frames: 10, scale: 2, facing: 'left', base: 'assets/characters-local',
+  });
 });

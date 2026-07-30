@@ -5,3 +5,5 @@ dist/
 .env
 .tmp-assets/
 config/config.local.json
+src/overlay/assets/characters-local/
+src/overlay/characters.local.json
