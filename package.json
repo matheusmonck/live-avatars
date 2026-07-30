@@ -10,7 +10,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "tiktok-live-connector": "^1.2.0",
+    "tiktok-live-connector": "^2.4.3",
     "ws": "^8.18.0"
   },
   "devDependencies": {

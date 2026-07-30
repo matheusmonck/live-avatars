@@ -4,10 +4,12 @@ import {
   normalizarSeguir, normalizarCompartilhar, normalizarPresente,
 } from '../src/server/normalize.js';
 
-const base = { uniqueId: 'fulano', nickname: 'Fulano', profilePictureUrl: 'http://foto' };
+// Shape do protobuf cru entregue pela tiktok-live-connector v2:
+// o usuário vem aninhado em `user` (displayId/nickname/avatarThumb).
+const base = { user: { displayId: 'fulano', nickname: 'Fulano', avatarThumb: { urlList: ['http://foto'] } } };
 
 test('comentário', () => {
-  expect(normalizarComentario({ ...base, comment: 'oi' })).toEqual({
+  expect(normalizarComentario({ ...base, content: 'oi' })).toEqual({
     tipo: 'comentario', usuario: 'fulano', nome: 'Fulano', fotoUrl: 'http://foto',
   });
 });
@@ -16,8 +18,8 @@ test('entrar', () => {
   expect(normalizarEntrar(base).tipo).toBe('entrar');
 });
 
-test('curtida soma likeCount', () => {
-  const n = normalizarCurtida({ ...base, likeCount: 7 });
+test('curtida soma count', () => {
+  const n = normalizarCurtida({ ...base, count: 7 });
   expect(n.tipo).toBe('curtida');
   expect(n.quantidade).toBe(7);
 });
@@ -28,7 +30,7 @@ test('seguir e compartilhar', () => {
 });
 
 test('presente: valor = diamondCount * repeatCount', () => {
-  const n = normalizarPresente({ ...base, giftName: 'rosa', diamondCount: 1, repeatCount: 3, giftType: 2, repeatEnd: true });
+  const n = normalizarPresente({ ...base, gift: { name: 'rosa', diamondCount: 1, type: 2 }, repeatCount: 3, repeatEnd: 1 });
   expect(n).toEqual({
     tipo: 'presente', usuario: 'fulano', nome: 'Fulano', fotoUrl: 'http://foto',
     presente: 'rosa', valorMoedas: 3,
@@ -36,10 +38,10 @@ test('presente: valor = diamondCount * repeatCount', () => {
 });
 
 test('presente streakável intermediário é ignorado (null)', () => {
-  const n = normalizarPresente({ ...base, giftName: 'rosa', diamondCount: 1, repeatCount: 2, giftType: 1, repeatEnd: false });
+  const n = normalizarPresente({ ...base, gift: { name: 'rosa', diamondCount: 1, type: 1 }, repeatCount: 2, repeatEnd: 0 });
   expect(n).toBeNull();
 });
 
 test('foto ausente vira string vazia', () => {
-  expect(normalizarEntrar({ uniqueId: 'x', nickname: 'X' }).fotoUrl).toBe('');
+  expect(normalizarEntrar({ user: { displayId: 'x', nickname: 'X' } }).fotoUrl).toBe('');
 });

@@ -1,0 +1,4 @@
+{
+  "_comentario": "Copie este arquivo para config/config.local.json e cole sua chave. Crie uma chave grátis em https://www.eulerstream.com (necessária para conectar na live real do TikTok). Este config.local.json NÃO é versionado no git.",
+  "signApiKey": ""
+}

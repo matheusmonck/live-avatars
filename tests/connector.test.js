@@ -17,7 +17,7 @@ test('encaminha comentário normalizado', async () => {
     aoEvento: (e) => recebidos.push(e),
   });
   await c.conectar();
-  conexao.emit('chat', { uniqueId: 'ana', nickname: 'Ana', profilePictureUrl: 'f', comment: 'oi' });
+  conexao.emit('chat', { user: { displayId: 'ana', nickname: 'Ana', avatarThumb: { urlList: ['f'] } }, content: 'oi' });
   expect(recebidos[0]).toEqual({ tipo: 'comentario', usuario: 'ana', nome: 'Ana', fotoUrl: 'f' });
 });
 
@@ -26,9 +26,9 @@ test('presente streakável intermediário não é encaminhado', async () => {
   const recebidos = [];
   const c = criarConnector('fulano', { criarConexao: () => conexao, aoEvento: (e) => recebidos.push(e) });
   await c.conectar();
-  conexao.emit('gift', { uniqueId: 'ana', giftName: 'rosa', diamondCount: 1, repeatCount: 1, giftType: 1, repeatEnd: false });
+  conexao.emit('gift', { user: { displayId: 'ana' }, gift: { name: 'rosa', diamondCount: 1, type: 1 }, repeatCount: 1, repeatEnd: 0 });
   expect(recebidos).toHaveLength(0);
-  conexao.emit('gift', { uniqueId: 'ana', giftName: 'rosa', diamondCount: 1, repeatCount: 2, giftType: 1, repeatEnd: true });
+  conexao.emit('gift', { user: { displayId: 'ana' }, gift: { name: 'rosa', diamondCount: 1, type: 1 }, repeatCount: 2, repeatEnd: 1 });
   expect(recebidos[0].tipo).toBe('presente');
   expect(recebidos[0].valorMoedas).toBe(2);
 });

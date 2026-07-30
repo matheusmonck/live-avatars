@@ -1,3 +1,4 @@
+import { UserOfflineError } from 'tiktok-live-connector';
 import { carregarConfig } from './config.js';
 import { criarServidorEstatico } from './static-server.js';
 import { criarBridge } from './bridge.js';
@@ -44,19 +45,30 @@ function main() {
     return;
   }
 
+  if (!cfg.signApiKey) {
+    console.warn('  ⚠  Sem chave de API (config/config.local.json). A conexão real com o TikTok vai falhar.');
+    console.warn('     Crie uma chave grátis em https://www.eulerstream.com e cole em config/config.local.json.');
+    console.warn('     Para testar o overlay sem TikTok, rode com --sim.\n');
+  }
+
   conectarComRetry(cfg, bridge);
 }
 
 function conectarComRetry(cfg, bridge) {
   const connector = criarConnector(cfg.usuarioTikTok, {
+    signApiKey: cfg.signApiKey,
     aoEvento: (e) => bridge.broadcast(e),
     aoStatus: (s) => {
       if (s.estado === 'conectado') console.log(`  Conectado à live de @${cfg.usuarioTikTok} ✅`);
       if (s.estado === 'desconectado') tentarReconectar(cfg, bridge, 'live encerrada/queda');
     },
   });
-  connector.conectar().catch(() => {
-    tentarReconectar(cfg, bridge, `live de @${cfg.usuarioTikTok} offline ou @ inválido`);
+  connector.conectar().catch((err) => {
+    const offline = err instanceof UserOfflineError;
+    const motivo = offline
+      ? `@${cfg.usuarioTikTok} não está ao vivo agora`
+      : `falha ao conectar em @${cfg.usuarioTikTok} (${String(err?.message ?? err).slice(0, 120)})`;
+    tentarReconectar(cfg, bridge, motivo);
   });
 }
 

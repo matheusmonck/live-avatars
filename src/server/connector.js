@@ -1,16 +1,18 @@
-import { WebcastPushConnection } from 'tiktok-live-connector';
+import { TikTokLiveConnection } from 'tiktok-live-connector';
 import {
   normalizarComentario, normalizarEntrar, normalizarCurtida,
   normalizarSeguir, normalizarCompartilhar, normalizarPresente,
 } from './normalize.js';
 
 // Fábrica padrão da conexão real. Injetável nos testes.
-function conexaoReal(usuario) {
-  return new WebcastPushConnection(usuario);
+// A v2 exige uma chave do sign server (Euler Stream) via signApiKey.
+function conexaoReal(usuario, { signApiKey } = {}) {
+  return new TikTokLiveConnection(usuario, { signApiKey });
 }
 
 export function criarConnector(usuario, {
-  criarConexao = conexaoReal,
+  signApiKey,
+  criarConexao = (u) => conexaoReal(u, { signApiKey }),
   aoEvento = () => {},
   aoStatus = () => {},
 } = {}) {
