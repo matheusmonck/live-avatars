@@ -1,7 +1,7 @@
 import { UserOfflineError } from 'tiktok-live-connector';
 import { loadConfig } from './config.js';
 import { criarServidorEstatico } from './static-server.js';
-import { criarBridge } from './bridge.js';
+import { createBridge } from './bridge.js';
 import { criarConnector } from './connector.js';
 import { iniciarSimulador } from './simulator.js';
 
@@ -10,7 +10,7 @@ const MODO_SIM = process.argv.includes('--sim');
 function main() {
   const cfg = loadConfig();
   const http = criarServidorEstatico();
-  const bridge = criarBridge(http, (ws) => {
+  const bridge = createBridge(http, (ws) => {
     ws.send(JSON.stringify({
       tipo: 'config',
       limiteAvatares: cfg.avatarLimit,
@@ -28,7 +28,7 @@ function main() {
 
   process.on('SIGINT', () => {
     console.log('\n  Encerrando Live Avatars...');
-    bridge.fechar();
+    bridge.close();
     http.close();
     process.exit(0);
   });

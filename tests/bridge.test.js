@@ -1,13 +1,13 @@
 import { test, expect } from 'vitest';
 import { createServer } from 'node:http';
 import { WebSocket } from 'ws';
-import { criarBridge } from '../src/server/bridge.js';
+import { createBridge } from '../src/server/bridge.js';
 
 function esperar(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 test('broadcast entrega evento a um cliente conectado', async () => {
   const http = createServer();
-  const bridge = criarBridge(http);
+  const bridge = createBridge(http);
   await new Promise(r => http.listen(0, r));
   const porta = http.address().port;
 
@@ -20,16 +20,16 @@ test('broadcast entrega evento a um cliente conectado', async () => {
   await esperar(50);
 
   expect(recebidos).toEqual([{ tipo: 'comentario', usuario: 'fulano' }]);
-  expect(bridge.clientes()).toBe(1);
+  expect(bridge.clients()).toBe(1);
 
   cliente.close();
-  bridge.fechar();
+  bridge.close();
   await new Promise(r => http.close(r));
 });
 
-test('aoConectar envia mensagem inicial ao novo cliente', async () => {
+test('onConnect envia mensagem inicial ao novo cliente', async () => {
   const http = createServer();
-  const bridge = criarBridge(http, (ws) => ws.send(JSON.stringify({ tipo: 'config', limiteAvatares: 7 })));
+  const bridge = createBridge(http, (ws) => ws.send(JSON.stringify({ tipo: 'config', limiteAvatares: 7 })));
   await new Promise(r => http.listen(0, r));
   const porta = http.address().port;
 
@@ -42,6 +42,6 @@ test('aoConectar envia mensagem inicial ao novo cliente', async () => {
   expect(recebidos).toEqual([{ tipo: 'config', limiteAvatares: 7 }]);
 
   cliente.close();
-  bridge.fechar();
+  bridge.close();
   await new Promise(r => http.close(r));
 });

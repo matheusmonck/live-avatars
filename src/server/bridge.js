@@ -1,7 +1,7 @@
 import { WebSocketServer } from 'ws';
 
 // Anexa um servidor WebSocket a um http.Server existente e permite broadcast.
-export function criarBridge(httpServer, aoConectar) {
+export function createBridge(httpServer, onConnect) {
   const wss = new WebSocketServer({ server: httpServer });
   // O http.Server já trata erros de listen (ex.: porta ocupada) com mensagem
   // amigável; o WebSocketServer reemite o mesmo erro, então aqui só evitamos que
@@ -9,16 +9,16 @@ export function criarBridge(httpServer, aoConectar) {
   wss.on('error', (err) => {
     if (err?.code !== 'EADDRINUSE') console.error('WebSocketServer:', err?.message ?? err);
   });
-  if (aoConectar) wss.on('connection', (ws) => aoConectar(ws));
+  if (onConnect) wss.on('connection', (ws) => onConnect(ws));
 
   return {
-    broadcast(evento) {
-      const msg = JSON.stringify(evento);
+    broadcast(event) {
+      const msg = JSON.stringify(event);
       for (const ws of wss.clients) {
         if (ws.readyState === ws.OPEN) ws.send(msg, () => {}); // callback absorve erro se o socket fechar no meio
       }
     },
-    clientes() { return wss.clients.size; },
-    fechar() { wss.close(); },
+    clients() { return wss.clients.size; },
+    close() { wss.close(); },
   };
 }
