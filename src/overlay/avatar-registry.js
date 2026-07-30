@@ -6,7 +6,7 @@ export function estiloDoUsuario(usuario) {
   return h % 2 === 0 ? 'blob' : 'pixel';
 }
 
-export function CriarRegistry({ limite, inatividadeMs }) {
+export function criarRegistry({ limite, inatividadeMs }) {
   // usuario -> { usuario, estilo, ultimaInteracao }
   const avatares = new Map();
 
@@ -47,6 +47,6 @@ export function CriarRegistry({ limite, inatividadeMs }) {
     },
 
     tem(usuario) { return avatares.has(usuario); },
-    lista() { return [...avatares.values()]; },
+    lista() { return [...avatares.values()].map(a => ({ ...a })); },
   };
 }

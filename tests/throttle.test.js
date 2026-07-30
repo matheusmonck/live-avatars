@@ -17,3 +17,11 @@ test('usuários diferentes não interferem', () => {
   expect(th.permitir('a')).toBe(true);
   expect(th.permitir('b')).toBe(true);
 });
+
+test('exatamente na janela é permitido (sliding window)', () => {
+  let agora = 1000;
+  const th = criarThrottle(500, () => agora);
+  expect(th.permitir('x')).toBe(true);
+  agora = 1500; // t - anterior === 500 === janela -> permitido
+  expect(th.permitir('x')).toBe(true);
+});

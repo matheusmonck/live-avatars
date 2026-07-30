@@ -22,3 +22,10 @@ test('presente caro = explosão', () => {
 test('valor inválido cai no pequeno', () => {
   expect(escalaPresente(undefined).nivel).toBe('pequeno');
 });
+
+test('fronteiras exatas dos níveis', () => {
+  expect(escalaPresente(5).nivel).toBe('pequeno');
+  expect(escalaPresente(6).nivel).toBe('medio');
+  expect(escalaPresente(100).nivel).toBe('medio');
+  expect(escalaPresente(101).nivel).toBe('grande');
+});

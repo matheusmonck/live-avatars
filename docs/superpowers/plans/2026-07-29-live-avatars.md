@@ -528,7 +528,7 @@ O registry é a lógica pura de ciclo de vida dos avatares (sem PixiJS). O overl
 
 ```js
 import { test, expect } from 'vitest';
-import { CriarRegistry, estiloDoUsuario } from '../src/overlay/avatar-registry.js';
+import { criarRegistry, estiloDoUsuario } from '../src/overlay/avatar-registry.js';
 
 test('estilo é determinístico por usuário (blob ou pixel)', () => {
   expect(estiloDoUsuario('fulano')).toBe(estiloDoUsuario('fulano'));
@@ -536,7 +536,7 @@ test('estilo é determinístico por usuário (blob ou pixel)', () => {
 });
 
 test('registrar cria avatar novo com estilo e @', () => {
-  const r = CriarRegistry({ limite: 5, inatividadeMs: 1000 });
+  const r = criarRegistry({ limite: 5, inatividadeMs: 1000 });
   const res = r.registrar('fulano', 1000);
   expect(res.novo).toBe(true);
   expect(res.avatar.usuario).toBe('fulano');
@@ -545,14 +545,14 @@ test('registrar cria avatar novo com estilo e @', () => {
 });
 
 test('registrar de novo não cria, só atualiza atividade', () => {
-  const r = CriarRegistry({ limite: 5, inatividadeMs: 1000 });
+  const r = criarRegistry({ limite: 5, inatividadeMs: 1000 });
   r.registrar('fulano', 1000);
   const res = r.registrar('fulano', 1500);
   expect(res.novo).toBe(false);
 });
 
 test('estoura o limite removendo o menos ativo', () => {
-  const r = CriarRegistry({ limite: 2, inatividadeMs: 10000 });
+  const r = criarRegistry({ limite: 2, inatividadeMs: 10000 });
   r.registrar('a', 100);
   r.registrar('b', 200);
   const res = r.registrar('c', 300); // estoura -> remove 'a'
@@ -563,7 +563,7 @@ test('estoura o limite removendo o menos ativo', () => {
 });
 
 test('expirarInativos remove quem passou do tempo', () => {
-  const r = CriarRegistry({ limite: 5, inatividadeMs: 1000 });
+  const r = criarRegistry({ limite: 5, inatividadeMs: 1000 });
   r.registrar('a', 1000);
   r.registrar('b', 1500);
   const removidos = r.expirarInativos(2200); // 'a' inativo há 1200ms
@@ -588,7 +588,7 @@ export function estiloDoUsuario(usuario) {
   return h % 2 === 0 ? 'blob' : 'pixel';
 }
 
-export function CriarRegistry({ limite, inatividadeMs }) {
+export function criarRegistry({ limite, inatividadeMs }) {
   // usuario -> { usuario, estilo, ultimaInteracao }
   const avatares = new Map();
 
@@ -1515,13 +1515,13 @@ Cola o registry (lógica) ao rendering e às reações. Aplica limite, expiraç�
 - [ ] **Step 1: Criar `src/overlay/avatar-manager.js`**
 
 ```js
-import { CriarRegistry } from './avatar-registry.js';
+import { criarRegistry } from './avatar-registry.js';
 import { criarThrottle } from './throttle.js';
 import { criarAvatarVisual } from './avatar.js';
 import * as R from './reactions.js';
 
 export function criarGerenciador(cena, cfg) {
-  const registry = CriarRegistry({
+  const registry = criarRegistry({
     limite: cfg.limiteAvatares,
     inatividadeMs: cfg.inatividadeSegundos * 1000,
   });
