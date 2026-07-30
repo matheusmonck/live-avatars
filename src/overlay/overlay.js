@@ -11,6 +11,13 @@ const statusEl = document.getElementById('status');
 
 const scene = await createScene(document.getElementById('stage'));
 await loadCharacters();
+try {
+  const res = await fetch('terrain.local.json');
+  if (res.ok) {
+    const t = await res.json();
+    if (t?.active) await scene.setBackground('assets/terrain-local/' + t.active);
+  }
+} catch {}
 const manager = createManager(scene, DEFAULT_CONFIG);
 
 connectWS({
