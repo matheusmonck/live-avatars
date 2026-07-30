@@ -45,11 +45,10 @@ function caminhoConfig() {
   return resolve(here, "../../config/config.json");
 }
 
-// Grava a config (chaves PT) e devolve o objeto EN validado.
+// Grava a config (chaves PT, valores já saneados) e devolve o objeto EN validado.
 export function saveConfig(en, configPath = caminhoConfig()) {
-  const raw = toRawConfig(en);
-  const cfg = validateConfig(raw);
-  writeFileSync(configPath, JSON.stringify(raw, null, 2) + "\n", "utf8");
+  const cfg = validateConfig(toRawConfig(en));
+  writeFileSync(configPath, JSON.stringify(toRawConfig(cfg), null, 2) + "\n", "utf8");
   return cfg;
 }
 

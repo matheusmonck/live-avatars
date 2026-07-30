@@ -42,3 +42,13 @@ test('saveConfig grava JSON com chaves PT e devolve config EN', () => {
   expect(gravado.usuarioTikTok).toBe('nova');
   expect(gravado.limiteAvatares).toBe(30);
 });
+
+test('saveConfig grava valores SANEADOS, não os crus fora de faixa', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'la-'));
+  const path = join(dir, 'config.json');
+  saveConfig({ username: '@ana', avatarLimit: 999, inactivitySeconds: 150, effectsVolume: 0.6, port: 99 }, path);
+  const gravado = JSON.parse(readFileSync(path, 'utf8'));
+  expect(gravado.porta).toBe(1024);        // clampado (min 1024), não 99
+  expect(gravado.limiteAvatares).toBe(60);  // clampado (max 60), não 999
+  expect(gravado.usuarioTikTok).toBe('ana'); // @ removido
+});
