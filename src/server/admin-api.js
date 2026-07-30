@@ -1,0 +1,63 @@
+import { loadConfig as loadConfigReal, saveConfig as saveConfigReal, saveKey as saveKeyReal } from './config.js';
+
+// Handler das rotas /admin/api/*. Deps injetáveis para teste.
+export function createAdminApi({
+  manager,
+  bridge,
+  loadConfig = loadConfigReal,
+  saveConfig = saveConfigReal,
+  saveKey = saveKeyReal,
+} = {}) {
+  function readBody(req) {
+    return new Promise((resolve) => {
+      let data = '';
+      req.on('data', (c) => { data += c; });
+      req.on('end', () => { try { resolve(data ? JSON.parse(data) : {}); } catch { resolve({}); } });
+    });
+  }
+  function json(res, code, obj) {
+    res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(obj));
+  }
+
+  async function route(req, res, path) {
+    if (path === '/admin/api/config' && req.method === 'GET') {
+      const cfg = loadConfig();
+      const { signApiKey, ...rest } = cfg;
+      return json(res, 200, { ...rest, hasKey: Boolean(signApiKey) });
+    }
+    if (path === '/admin/api/config' && req.method === 'PUT') {
+      const body = await readBody(req);
+      try {
+        const cfg = saveConfig(body);
+        bridge.broadcast({ type: 'config', avatarLimit: cfg.avatarLimit, inactivitySeconds: cfg.inactivitySeconds });
+        return json(res, 200, { ok: true });
+      } catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+    }
+    if (path === '/admin/api/key' && req.method === 'PUT') {
+      const body = await readBody(req);
+      saveKey(body.signApiKey);
+      return json(res, 200, { ok: true });
+    }
+    if (path === '/admin/api/start' && req.method === 'POST') {
+      try { manager.start(loadConfig()); return json(res, 200, { ok: true }); }
+      catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+    }
+    if (path === '/admin/api/stop' && req.method === 'POST') {
+      manager.stop(); return json(res, 200, { ok: true });
+    }
+    if (path === '/admin/api/status' && req.method === 'GET') {
+      return json(res, 200, manager.getStatus());
+    }
+    return json(res, 404, { error: 'rota não encontrada' });
+  }
+
+  return {
+    handle(req, res) {
+      const path = req.url.split('?')[0];
+      if (!path.startsWith('/admin/api/')) return false;
+      route(req, res, path);
+      return true;
+    },
+  };
+}
