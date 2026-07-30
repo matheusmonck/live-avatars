@@ -1,49 +1,49 @@
-export function criarRegistry({ limite, inatividadeMs }) {
-  // usuario -> { usuario, ultimaInteracao }
-  const avatares = new Map();
+export function createRegistry({ limit, inactivityMs }) {
+  // usuario -> { usuario, lastInteraction }
+  const avatars = new Map();
 
-  function maisAntigo() {
-    let alvo = null;
-    for (const a of avatares.values()) {
-      if (!alvo || a.ultimaInteracao < alvo.ultimaInteracao) alvo = a;
+  function oldest() {
+    let target = null;
+    for (const a of avatars.values()) {
+      if (!target || a.lastInteraction < target.lastInteraction) target = a;
     }
-    return alvo;
+    return target;
   }
 
   return {
-    registrar(usuario, agora) {
-      const existente = avatares.get(usuario);
-      if (existente) {
-        existente.ultimaInteracao = agora;
-        return { novo: false, avatar: existente, removidos: [] };
+    register(username, now) {
+      const existing = avatars.get(username);
+      if (existing) {
+        existing.lastInteraction = now;
+        return { isNew: false, avatar: existing, removed: [] };
       }
-      const removidos = [];
-      while (avatares.size >= limite) {
-        const velho = maisAntigo();
-        if (!velho) break;
-        avatares.delete(velho.usuario);
-        removidos.push(velho.usuario);
+      const removed = [];
+      while (avatars.size >= limit) {
+        const old = oldest();
+        if (!old) break;
+        avatars.delete(old.usuario);
+        removed.push(old.usuario);
       }
-      const avatar = { usuario, ultimaInteracao: agora };
-      avatares.set(usuario, avatar);
-      return { novo: true, avatar, removidos };
+      const avatar = { usuario: username, lastInteraction: now };
+      avatars.set(username, avatar);
+      return { isNew: true, avatar, removed };
     },
 
-    expirarInativos(agora) {
-      const removidos = [];
-      for (const a of avatares.values()) {
-        if (agora - a.ultimaInteracao > inatividadeMs) removidos.push(a.usuario);
+    expireInactive(now) {
+      const removed = [];
+      for (const a of avatars.values()) {
+        if (now - a.lastInteraction > inactivityMs) removed.push(a.usuario);
       }
-      for (const u of removidos) avatares.delete(u);
-      return removidos;
+      for (const u of removed) avatars.delete(u);
+      return removed;
     },
 
-    configurar({ limite: novoLimite, inatividadeMs: novaInatividade } = {}) {
-      if (Number.isFinite(novoLimite)) limite = novoLimite;
-      if (Number.isFinite(novaInatividade)) inatividadeMs = novaInatividade;
+    configure({ limit: newLimit, inactivityMs: newInactivity } = {}) {
+      if (Number.isFinite(newLimit)) limit = newLimit;
+      if (Number.isFinite(newInactivity)) inactivityMs = newInactivity;
     },
 
-    tem(usuario) { return avatares.has(usuario); },
-    lista() { return [...avatares.values()].map(a => ({ ...a })); },
+    has(username) { return avatars.has(username); },
+    list() { return [...avatars.values()].map(a => ({ ...a })); },
   };
 }

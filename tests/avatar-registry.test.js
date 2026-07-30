@@ -1,54 +1,54 @@
 import { test, expect } from 'vitest';
-import { criarRegistry } from '../src/overlay/avatar-registry.js';
+import { createRegistry } from '../src/overlay/avatar-registry.js';
 
 test('registrar cria avatar novo', () => {
-  const r = criarRegistry({ limite: 5, inatividadeMs: 1000 });
-  const res = r.registrar('fulano', 1000);
-  expect(res.novo).toBe(true);
+  const r = createRegistry({ limit: 5, inactivityMs: 1000 });
+  const res = r.register('fulano', 1000);
+  expect(res.isNew).toBe(true);
   expect(res.avatar.usuario).toBe('fulano');
-  expect(res.removidos).toEqual([]);
+  expect(res.removed).toEqual([]);
 });
 
 test('registrar de novo não cria, só atualiza atividade', () => {
-  const r = criarRegistry({ limite: 5, inatividadeMs: 1000 });
-  r.registrar('fulano', 1000);
-  const res = r.registrar('fulano', 1500);
-  expect(res.novo).toBe(false);
+  const r = createRegistry({ limit: 5, inactivityMs: 1000 });
+  r.register('fulano', 1000);
+  const res = r.register('fulano', 1500);
+  expect(res.isNew).toBe(false);
 });
 
 test('estoura o limite removendo o menos ativo', () => {
-  const r = criarRegistry({ limite: 2, inatividadeMs: 10000 });
-  r.registrar('a', 100);
-  r.registrar('b', 200);
-  const res = r.registrar('c', 300); // estoura -> remove 'a'
-  expect(res.novo).toBe(true);
-  expect(res.removidos).toEqual(['a']);
-  expect(r.tem('a')).toBe(false);
-  expect(r.tem('c')).toBe(true);
+  const r = createRegistry({ limit: 2, inactivityMs: 10000 });
+  r.register('a', 100);
+  r.register('b', 200);
+  const res = r.register('c', 300); // estoura -> remove 'a'
+  expect(res.isNew).toBe(true);
+  expect(res.removed).toEqual(['a']);
+  expect(r.has('a')).toBe(false);
+  expect(r.has('c')).toBe(true);
 });
 
 test('expirarInativos remove quem passou do tempo', () => {
-  const r = criarRegistry({ limite: 5, inatividadeMs: 1000 });
-  r.registrar('a', 1000);
-  r.registrar('b', 1500);
-  const removidos = r.expirarInativos(2200); // 'a' inativo há 1200ms
-  expect(removidos).toEqual(['a']);
-  expect(r.tem('b')).toBe(true);
+  const r = createRegistry({ limit: 5, inactivityMs: 1000 });
+  r.register('a', 1000);
+  r.register('b', 1500);
+  const removed = r.expireInactive(2200); // 'a' inativo há 1200ms
+  expect(removed).toEqual(['a']);
+  expect(r.has('b')).toBe(true);
 });
 
 test('exatamente no limite de inatividade NÃO expira (grace de 1ms)', () => {
-  const r = criarRegistry({ limite: 5, inatividadeMs: 1000 });
-  r.registrar('a', 1000);
-  expect(r.expirarInativos(2000)).toEqual([]);   // diff === 1000, não expira
-  expect(r.expirarInativos(2001)).toEqual(['a']); // diff > 1000, expira
+  const r = createRegistry({ limit: 5, inactivityMs: 1000 });
+  r.register('a', 1000);
+  expect(r.expireInactive(2000)).toEqual([]);   // diff === 1000, não expira
+  expect(r.expireInactive(2001)).toEqual(['a']); // diff > 1000, expira
 });
 
 test('configurar altera limite e inatividade em tempo real', () => {
-  const r = criarRegistry({ limite: 1, inatividadeMs: 1000 });
-  r.registrar('a', 100);
-  r.configurar({ limite: 2, inatividadeMs: 5000 });
-  const res = r.registrar('b', 200); // agora cabe sem remover ninguém
-  expect(res.removidos).toEqual([]);
-  expect(r.tem('a')).toBe(true);
-  expect(r.expirarInativos(2000)).toEqual([]); // 'a' inativo há 1900ms < 5000ms
+  const r = createRegistry({ limit: 1, inactivityMs: 1000 });
+  r.register('a', 100);
+  r.configure({ limit: 2, inactivityMs: 5000 });
+  const res = r.register('b', 200); // agora cabe sem remover ninguém
+  expect(res.removed).toEqual([]);
+  expect(r.has('a')).toBe(true);
+  expect(r.expireInactive(2000)).toEqual([]); // 'a' inativo há 1900ms < 5000ms
 });

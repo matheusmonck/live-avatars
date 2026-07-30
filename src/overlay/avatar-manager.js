@@ -1,22 +1,22 @@
-import { criarRegistry } from './avatar-registry.js';
+import { createRegistry } from './avatar-registry.js';
 import { createThrottle } from './throttle.js';
 import { criarAvatarVisual } from './avatar.js';
 import * as R from './reactions.js';
 
 export function criarGerenciador(cena, cfg) {
-  const registry = criarRegistry({
-    limite: cfg.limiteAvatares,
-    inatividadeMs: cfg.inatividadeSegundos * 1000,
+  const registry = createRegistry({
+    limit: cfg.limiteAvatares,
+    inactivityMs: cfg.inatividadeSegundos * 1000,
   });
   const throttle = createThrottle(1500);
   const TIPOS_THROTTLED = new Set(['curtida', 'seguir', 'compartilhar']);
   const visuais = new Map(); // usuario -> avatarVisual
 
   function garantir(evento) {
-    const res = registry.registrar(evento.usuario, Date.now());
-    for (const u of res.removidos) removerVisual(u);
-    if (res.novo) {
-      const v = criarAvatarVisual(res.avatar, cena);
+    const result = registry.register(evento.usuario, Date.now());
+    for (const u of result.removed) removerVisual(u);
+    if (result.isNew) {
+      const v = criarAvatarVisual(result.avatar, cena);
       visuais.set(evento.usuario, v);
     }
     return visuais.get(evento.usuario);
@@ -48,13 +48,13 @@ export function criarGerenciador(cena, cfg) {
 
   // Expiração por inatividade a cada 5s.
   setInterval(() => {
-    for (const u of registry.expirarInativos(Date.now())) removerVisual(u);
+    for (const u of registry.expireInactive(Date.now())) removerVisual(u);
   }, 5000);
 
   function configurar(novo) {
-    registry.configurar({
-      limite: novo.limiteAvatares,
-      inatividadeMs: novo.inatividadeSegundos * 1000,
+    registry.configure({
+      limit: novo.limiteAvatares,
+      inactivityMs: novo.inatividadeSegundos * 1000,
     });
   }
 
