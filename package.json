@@ -1,0 +1,19 @@
+{
+  "name": "live-avatars",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/server/index.js",
+    "sim": "node src/server/index.js --sim",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "tiktok-live-connector": "^1.2.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0"
+  }
+}
