@@ -1,9 +1,9 @@
-import { criarSpritePersonagem } from './characters.js';
+import { createCharacterSprite } from './characters.js';
 
 // Representa um avatar na tela: corpo + label @, com passeio pelo chão.
 export function criarAvatarVisual({ usuario }, cena) {
   const raiz = new PIXI.Container();
-  const corpo = criarSpritePersonagem(usuario);
+  const corpo = createCharacterSprite(usuario);
   raiz.addChild(corpo);
 
   const label = new PIXI.Text({
@@ -24,7 +24,7 @@ export function criarAvatarVisual({ usuario }, cena) {
   let velocidade = 0.02 + Math.random() * 0.02; // px por ms
   let saindo = false;
   let pausado = false;
-  corpo.virarPara(direcao); // orienta a arte já na entrada
+  corpo.faceTo(direcao); // orienta a arte já na entrada
 
   function andar(dtMs) {
     if (pausado) return;
@@ -34,7 +34,7 @@ export function criarAvatarVisual({ usuario }, cena) {
       if (raiz.x < 30) direcao = 1;
       if (raiz.x > larg - 30) direcao = -1;
     }
-    corpo.virarPara(direcao); // vira ao inverter a direção nas bordas
+    corpo.faceTo(direcao); // vira ao inverter a direção nas bordas
   }
 
   function pular() {
