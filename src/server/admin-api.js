@@ -1,5 +1,6 @@
 import { loadConfig as loadConfigReal, saveConfig as saveConfigReal, saveKey as saveKeyReal } from './config.js';
 import { listSprites as listSpritesReal, saveSprite as saveSpriteReal, deleteSprite as deleteSpriteReal } from './sprites.js';
+import { listTerrains as listTerrainsReal, saveTerrain as saveTerrainReal, setActiveTerrain as setActiveTerrainReal, deleteTerrain as deleteTerrainReal } from './terrains.js';
 
 // Handler das rotas /admin/api/*. Deps injetáveis para teste.
 export function createAdminApi({
@@ -11,6 +12,10 @@ export function createAdminApi({
   listSprites = listSpritesReal,
   saveSprite = saveSpriteReal,
   deleteSprite = deleteSpriteReal,
+  listTerrains = listTerrainsReal,
+  saveTerrain = saveTerrainReal,
+  setActiveTerrain = setActiveTerrainReal,
+  deleteTerrain = deleteTerrainReal,
 } = {}) {
   function readBody(req) {
     return new Promise((resolve) => {
@@ -64,6 +69,24 @@ export function createAdminApi({
     if (path.startsWith('/admin/api/sprites/') && req.method === 'DELETE') {
       const id = decodeURIComponent(path.slice('/admin/api/sprites/'.length));
       try { deleteSprite(id); return json(res, 200, { ok: true }); }
+      catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+    }
+    if (path === '/admin/api/terrain' && req.method === 'GET') {
+      return json(res, 200, listTerrains());
+    }
+    if (path === '/admin/api/terrain' && req.method === 'POST') {
+      const body = await readBody(req);
+      try { const t = saveTerrain(body); return json(res, 200, { ok: true, ...t }); }
+      catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+    }
+    if (path === '/admin/api/terrain/active' && req.method === 'PUT') {
+      const body = await readBody(req);
+      try { setActiveTerrain(body.active ?? null); return json(res, 200, { ok: true }); }
+      catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+    }
+    if (path.startsWith('/admin/api/terrain/') && req.method === 'DELETE') {
+      const file = decodeURIComponent(path.slice('/admin/api/terrain/'.length));
+      try { deleteTerrain(file); return json(res, 200, { ok: true }); }
       catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     return json(res, 404, { error: 'rota não encontrada' });

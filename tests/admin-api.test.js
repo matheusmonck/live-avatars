@@ -19,6 +19,10 @@ const depsBase = () => ({
   listSprites: () => [{ id: 'hero', frames: 2, scale: 2, facing: 'front', source: 'default' }],
   saveSprite: vi.fn(),
   deleteSprite: vi.fn(),
+  listTerrains: () => ({ active: null, items: [] }),
+  saveTerrain: vi.fn(() => ({ file: 'grama.png' })),
+  setActiveTerrain: vi.fn(),
+  deleteTerrain: vi.fn(),
 });
 
 test('GET /admin/api/config devolve config sem a chave, com hasKey', async () => {
@@ -96,5 +100,36 @@ test('DELETE /admin/api/sprites/:id chama deleteSprite', async () => {
     const r = await fetch(`${base}/admin/api/sprites/robo`, { method: 'DELETE' });
     expect(r.status).toBe(200);
     expect(deps.deleteSprite).toHaveBeenCalledWith('robo');
+  });
+});
+
+test('GET /admin/api/terrain', async () => {
+  await comServidor(depsBase(), async (base) => {
+    const r = await fetch(`${base}/admin/api/terrain`);
+    expect((await r.json())).toEqual({ active: null, items: [] });
+  });
+});
+test('POST /admin/api/terrain chama saveTerrain', async () => {
+  const deps = depsBase();
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/terrain`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'grama', image: 'x' }) });
+    expect(r.status).toBe(200);
+    expect(deps.saveTerrain).toHaveBeenCalled();
+  });
+});
+test('PUT /admin/api/terrain/active', async () => {
+  const deps = depsBase();
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/terrain/active`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active: null }) });
+    expect(r.status).toBe(200);
+    expect(deps.setActiveTerrain).toHaveBeenCalledWith(null);
+  });
+});
+test('DELETE /admin/api/terrain/:file', async () => {
+  const deps = depsBase();
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/terrain/grama.png`, { method: 'DELETE' });
+    expect(r.status).toBe(200);
+    expect(deps.deleteTerrain).toHaveBeenCalledWith('grama.png');
   });
 });
