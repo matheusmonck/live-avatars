@@ -8,7 +8,8 @@ export function criarGerenciador(cena, cfg) {
     limite: cfg.limiteAvatares,
     inatividadeMs: cfg.inatividadeSegundos * 1000,
   });
-  const throttleCurtida = criarThrottle(1500);
+  const throttle = criarThrottle(1500);
+  const TIPOS_THROTTLED = new Set(['curtida', 'seguir', 'compartilhar']);
   const visuais = new Map(); // usuario -> avatarVisual
 
   function garantir(evento) {
@@ -27,7 +28,7 @@ export function criarGerenciador(cena, cfg) {
   }
 
   function tratar(evento) {
-    if (evento.tipo === 'curtida' && !throttleCurtida.permitir(evento.usuario)) return;
+    if (TIPOS_THROTTLED.has(evento.tipo) && !throttle.permitir(evento.tipo + ':' + evento.usuario)) return;
     const v = garantir(evento);
     if (!v) return;
     switch (evento.tipo) {

@@ -24,5 +24,5 @@ e abra `http://localhost:8737`.
 - `usuarioTikTok` — seu @ (sem o @).
 - `limiteAvatares` — máximo de bonequinhos na tela.
 - `inatividadeSegundos` — tempo sem interagir até o bonequinho sair.
-- `volumeEfeitos` — 0 a 1.
+- `volumeEfeitos` — 0 a 1. (Obs.: som ainda não implementado nesta versão; este ajuste ainda não tem efeito.)
 - `porta` — porta local (padrão 8737).

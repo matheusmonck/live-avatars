@@ -87,6 +87,7 @@ export function reacaoPresente(cena, avatar, evento) {
   const inicio = avatar.posicao();
   const base = cena.linhaChao();
   avatar.pausar(); // pausa o passeio enquanto está em destaque
+  cena.camadaDestaque.addChild(avatar.raiz); // sobe o avatar pra camada de destaque (na frente do confete)
   let t = 0;
   const subir = 700;
   const animar = (ticker) => {
@@ -113,7 +114,11 @@ export function reacaoPresente(cena, avatar, evento) {
       avatar.raiz.x = de.x + (inicio.x - de.x) * p;
       avatar.raiz.y = de.y + (base - de.y) * p;
       avatar.raiz.scale.set(de.s + (1 - de.s) * p);
-      if (p >= 1) { cena.app.ticker.remove(anim2); avatar.retomar(); }
+      if (p >= 1) {
+        cena.app.ticker.remove(anim2);
+        if (!avatar.raiz.destroyed) cena.camadaChao.addChild(avatar.raiz); // volta pra camada do chão
+        avatar.retomar();
+      }
     };
     cena.app.ticker.add(anim2);
   }

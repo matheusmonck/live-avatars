@@ -17,8 +17,17 @@ function main() {
     }));
   });
 
+  http.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`\n  A porta ${cfg.porta} já está em uso. Feche a outra janela do Live Avatars (ou mude "porta" no config/config.json) e tente de novo.\n`);
+      process.exit(1);
+    }
+    throw err;
+  });
+
   process.on('SIGINT', () => {
     console.log('\n  Encerrando Live Avatars...');
+    bridge.fechar();
     http.close();
     process.exit(0);
   });

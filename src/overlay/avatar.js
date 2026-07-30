@@ -67,7 +67,7 @@ export function criarAvatarVisual({ usuario, estilo }, cena) {
   }
 
   return {
-    raiz, corpo, usuario, andar, pular, sair,
+    raiz, usuario, andar, pular, sair,
     pausar: () => { pausado = true; },
     retomar: () => { pausado = false; },
     posicao: () => ({ x: raiz.x, y: raiz.y }),
