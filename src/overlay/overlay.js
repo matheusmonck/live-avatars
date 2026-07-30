@@ -1,4 +1,4 @@
-import { criarCena } from './scene.js';
+import { createScene } from './scene.js';
 import { conectarWS } from './ws-client.js';
 import { criarGerenciador } from './avatar-manager.js';
 import { loadCharacters } from './characters.js';
@@ -9,9 +9,9 @@ const CFG_PADRAO = { limiteAvatares: 18, inatividadeSegundos: 150 };
 
 const statusEl = document.getElementById('status');
 
-const cena = await criarCena(document.getElementById('palco'));
+const scene = await createScene(document.getElementById('palco'));
 await loadCharacters();
-const gerenciador = criarGerenciador(cena, CFG_PADRAO);
+const gerenciador = criarGerenciador(scene, CFG_PADRAO);
 
 conectarWS({
   aoEvento: (evento) => {

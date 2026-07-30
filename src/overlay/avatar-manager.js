@@ -1,9 +1,9 @@
 import { createRegistry } from './avatar-registry.js';
 import { createThrottle } from './throttle.js';
-import { criarAvatarVisual } from './avatar.js';
+import { createAvatarVisual } from './avatar.js';
 import * as R from './reactions.js';
 
-export function criarGerenciador(cena, cfg) {
+export function criarGerenciador(scene, cfg) {
   const registry = createRegistry({
     limit: cfg.limiteAvatares,
     inactivityMs: cfg.inatividadeSegundos * 1000,
@@ -16,7 +16,7 @@ export function criarGerenciador(cena, cfg) {
     const result = registry.register(evento.usuario, Date.now());
     for (const u of result.removed) removerVisual(u);
     if (result.isNew) {
-      const v = criarAvatarVisual(result.avatar, cena);
+      const v = createAvatarVisual(result.avatar, scene);
       visuais.set(evento.usuario, v);
     }
     return visuais.get(evento.usuario);
@@ -24,7 +24,7 @@ export function criarGerenciador(cena, cfg) {
 
   function removerVisual(usuario) {
     const v = visuais.get(usuario);
-    if (v) { visuais.delete(usuario); v.sair(); }
+    if (v) { visuais.delete(usuario); v.leave(); }
   }
 
   function tratar(evento) {
@@ -32,18 +32,18 @@ export function criarGerenciador(cena, cfg) {
     const v = garantir(evento);
     if (!v) return;
     switch (evento.tipo) {
-      case 'comentario': v.pular(); break;
+      case 'comentario': v.jump(); break;
       case 'entrar': break; // já entrou andando ao ser criado
-      case 'curtida': R.reacaoCuracao(cena, v); break;
-      case 'seguir': R.reacaoSeguir(cena, v, evento.nome || evento.usuario); break;
-      case 'compartilhar': R.reacaoEstrelas(cena, v); break;
-      case 'presente': R.reacaoPresente(cena, v, evento); break;
+      case 'curtida': R.reacaoCuracao(scene, v); break;
+      case 'seguir': R.reacaoSeguir(scene, v, evento.nome || evento.usuario); break;
+      case 'compartilhar': R.reacaoEstrelas(scene, v); break;
+      case 'presente': R.reacaoPresente(scene, v, evento); break;
     }
   }
 
   // Andar contínuo de todos os avatares.
-  cena.app.ticker.add((ticker) => {
-    for (const v of visuais.values()) v.andar(ticker.deltaMS);
+  scene.app.ticker.add((ticker) => {
+    for (const v of visuais.values()) v.walk(ticker.deltaMS);
   });
 
   // Expiração por inatividade a cada 5s.
