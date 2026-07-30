@@ -1,4 +1,5 @@
 import { loadConfig as loadConfigReal, saveConfig as saveConfigReal, saveKey as saveKeyReal } from './config.js';
+import { listSprites as listSpritesReal, saveSprite as saveSpriteReal, deleteSprite as deleteSpriteReal } from './sprites.js';
 
 // Handler das rotas /admin/api/*. Deps injetáveis para teste.
 export function createAdminApi({
@@ -7,6 +8,9 @@ export function createAdminApi({
   loadConfig = loadConfigReal,
   saveConfig = saveConfigReal,
   saveKey = saveKeyReal,
+  listSprites = listSpritesReal,
+  saveSprite = saveSpriteReal,
+  deleteSprite = deleteSpriteReal,
 } = {}) {
   function readBody(req) {
     return new Promise((resolve) => {
@@ -48,6 +52,19 @@ export function createAdminApi({
     }
     if (path === '/admin/api/status' && req.method === 'GET') {
       return json(res, 200, manager.getStatus());
+    }
+    if (path === '/admin/api/sprites' && req.method === 'GET') {
+      return json(res, 200, listSprites());
+    }
+    if (path === '/admin/api/sprites' && req.method === 'POST') {
+      const body = await readBody(req);
+      try { saveSprite(body); return json(res, 200, { ok: true }); }
+      catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+    }
+    if (path.startsWith('/admin/api/sprites/') && req.method === 'DELETE') {
+      const id = decodeURIComponent(path.slice('/admin/api/sprites/'.length));
+      try { deleteSprite(id); return json(res, 200, { ok: true }); }
+      catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     return json(res, 404, { error: 'rota não encontrada' });
   }
