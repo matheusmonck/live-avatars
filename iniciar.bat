@@ -7,6 +7,6 @@ if not exist node_modules (
   echo Instalando dependencias pela primeira vez...
   call npm install
 )
-start "" "http://localhost:8737"
+start "" "http://localhost:8737/admin"
 call npm run dev
 pause
