@@ -661,7 +661,7 @@ Serve os arquivos de `src/overlay/` por HTTP (sem dependências extras), pra o L
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { dirname, resolve, normalize, extname } from 'node:path';
+import { dirname, resolve, normalize, extname, sep } from 'node:path';
 
 const TIPOS = {
   '.html': 'text/html; charset=utf-8',
@@ -680,7 +680,7 @@ export function criarServidorEstatico() {
       let caminho = decodeURIComponent(req.url.split('?')[0]);
       if (caminho === '/') caminho = '/index.html';
       const abs = normalize(resolve(raizOverlay, '.' + caminho));
-      if (!abs.startsWith(raizOverlay)) { res.writeHead(403).end('proibido'); return; }
+      if (!abs.startsWith(raizOverlay + sep)) { res.writeHead(403).end('proibido'); return; }
       const conteudo = await readFile(abs);
       res.writeHead(200, { 'Content-Type': TIPOS[extname(abs)] ?? 'application/octet-stream' });
       res.end(conteudo);
@@ -747,6 +747,7 @@ test('broadcast entrega evento a um cliente conectado', async () => {
   expect(bridge.clientes()).toBe(1);
 
   cliente.close();
+  bridge.fechar();
   await new Promise(r => http.close(r));
 });
 ```
@@ -769,7 +770,7 @@ export function criarBridge(httpServer) {
     broadcast(evento) {
       const msg = JSON.stringify(evento);
       for (const ws of wss.clients) {
-        if (ws.readyState === ws.OPEN) ws.send(msg);
+        if (ws.readyState === ws.OPEN) ws.send(msg, () => {}); // callback absorve erro se o socket fechar no meio
       }
     },
     clientes() { return wss.clients.size; },
@@ -1020,6 +1021,12 @@ function main() {
   const cfg = carregarConfig();
   const http = criarServidorEstatico();
   const bridge = criarBridge(http);
+
+  process.on('SIGINT', () => {
+    console.log('\n  Encerrando Live Avatars...');
+    http.close();
+    process.exit(0);
+  });
 
   http.listen(cfg.porta, () => {
     console.log(`\n  Live Avatars no ar 🎉`);
