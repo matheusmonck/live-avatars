@@ -1,22 +1,26 @@
-import { UserOfflineError } from 'tiktok-live-connector';
 import { loadConfig } from './config.js';
 import { createStaticServer } from './static-server.js';
 import { createBridge } from './bridge.js';
-import { createConnector } from './connector.js';
+import { createConnectionManager } from './connection-manager.js';
+import { createAdminApi } from './admin-api.js';
 import { startSimulator } from './simulator.js';
 
 const MODO_SIM = process.argv.includes('--sim');
 
 function main() {
   const cfg = loadConfig();
-  const http = createStaticServer();
+  let manager;
+  let adminApi;
+  const http = createStaticServer({ adminApi: (req, res) => adminApi.handle(req, res) });
+
   const bridge = createBridge(http, (ws) => {
-    ws.send(JSON.stringify({
-      type: 'config',
-      avatarLimit: cfg.avatarLimit,
-      inactivitySeconds: cfg.inactivitySeconds,
-    }));
+    const c = loadConfig();
+    ws.send(JSON.stringify({ type: 'config', avatarLimit: c.avatarLimit, inactivitySeconds: c.inactivitySeconds }));
+    ws.send(JSON.stringify({ type: 'status', ...manager.getStatus() }));
   });
+
+  manager = createConnectionManager({ bridge });
+  adminApi = createAdminApi({ manager, bridge });
 
   http.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
@@ -28,6 +32,7 @@ function main() {
 
   process.on('SIGINT', () => {
     console.log('\n  Encerrando Live Avatars...');
+    manager.stop();
     bridge.close();
     http.close();
     process.exit(0);
@@ -36,45 +41,15 @@ function main() {
   http.listen(cfg.port, () => {
     console.log(`\n  Live Avatars no ar 🎉`);
     console.log(`  Overlay:  http://localhost:${cfg.port}`);
-    console.log(`  (adicione essa URL como Fonte de Navegador no TikTok Live Studio)\n`);
+    console.log(`  Painel:   http://localhost:${cfg.port}/admin`);
+    console.log(`  (abra o Painel pra configurar e iniciar a conexão)\n`);
   });
 
   if (MODO_SIM) {
     console.log('  MODO SIMULADOR: gerando eventos falsos.\n');
     startSimulator((e) => bridge.broadcast(e));
-    return;
   }
-
-  if (!cfg.signApiKey) {
-    console.warn('  ⚠  Sem chave de API (config/config.local.json). A conexão real com o TikTok vai falhar.');
-    console.warn('     Crie uma chave grátis em https://www.eulerstream.com e cole em config/config.local.json.');
-    console.warn('     Para testar o overlay sem TikTok, rode com --sim.\n');
-  }
-
-  connectWithRetry(cfg, bridge);
-}
-
-function connectWithRetry(cfg, bridge) {
-  const connector = createConnector(cfg.username, {
-    signApiKey: cfg.signApiKey,
-    onEvent: (e) => bridge.broadcast(e),
-    onStatus: (s) => {
-      if (s.state === 'connected') console.log(`  Conectado à live de @${cfg.username} ✅`);
-      if (s.state === 'disconnected') retryConnection(cfg, bridge, 'live encerrada/queda');
-    },
-  });
-  connector.connect().catch((err) => {
-    const offline = err instanceof UserOfflineError;
-    const reason = offline
-      ? `@${cfg.username} não está ao vivo agora`
-      : `falha ao conectar em @${cfg.username} (${String(err?.message ?? err).slice(0, 120)})`;
-    retryConnection(cfg, bridge, reason);
-  });
-}
-
-function retryConnection(cfg, bridge, reason) {
-  console.log(`  ⚠  ${reason}. Tentando novamente em 15s...`);
-  setTimeout(() => connectWithRetry(cfg, bridge), 15000);
+  // Modelo idle: não conecta no boot; o painel inicia via /admin/api/start.
 }
 
 main();
