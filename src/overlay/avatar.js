@@ -1,9 +1,9 @@
-import { desenharAvatar } from './styles.js';
+import { criarSpritePersonagem } from './characters.js';
 
 // Representa um avatar na tela: corpo + label @, com passeio pelo chão.
-export function criarAvatarVisual({ usuario, estilo }, cena) {
+export function criarAvatarVisual({ usuario }, cena) {
   const raiz = new PIXI.Container();
-  const corpo = desenharAvatar(estilo, usuario);
+  const corpo = criarSpritePersonagem(usuario);
   raiz.addChild(corpo);
 
   const label = new PIXI.Text({
@@ -28,7 +28,6 @@ export function criarAvatarVisual({ usuario, estilo }, cena) {
   function andar(dtMs) {
     if (pausado) return;
     raiz.x += direcao * velocidade * dtMs;
-    corpo.scale.x = direcao; // "olha" pra onde anda
     const larg = cena.app.screen.width;
     if (!saindo) {
       if (raiz.x < 30) direcao = 1;
@@ -53,6 +52,7 @@ export function criarAvatarVisual({ usuario, estilo }, cena) {
   function sair(aoFim) {
     saindo = true;
     pausado = false; // um avatar em destaque/pausado ainda precisa andar pra fora
+    corpo.play();
     direcao = raiz.x < cena.app.screen.width / 2 ? -1 : 1;
     velocidade = 0.12;
     const anim = (ticker) => {
@@ -68,8 +68,8 @@ export function criarAvatarVisual({ usuario, estilo }, cena) {
 
   return {
     raiz, usuario, andar, pular, sair,
-    pausar: () => { pausado = true; },
-    retomar: () => { pausado = false; },
+    pausar: () => { pausado = true; corpo.stop(); },
+    retomar: () => { pausado = false; corpo.play(); },
     posicao: () => ({ x: raiz.x, y: raiz.y }),
   };
 }

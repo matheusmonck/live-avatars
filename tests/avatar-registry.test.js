@@ -1,17 +1,11 @@
 import { test, expect } from 'vitest';
-import { criarRegistry, estiloDoUsuario } from '../src/overlay/avatar-registry.js';
+import { criarRegistry } from '../src/overlay/avatar-registry.js';
 
-test('estilo é determinístico por usuário (blob ou pixel)', () => {
-  expect(estiloDoUsuario('fulano')).toBe(estiloDoUsuario('fulano'));
-  expect(['blob', 'pixel']).toContain(estiloDoUsuario('fulano'));
-});
-
-test('registrar cria avatar novo com estilo e @', () => {
+test('registrar cria avatar novo', () => {
   const r = criarRegistry({ limite: 5, inatividadeMs: 1000 });
   const res = r.registrar('fulano', 1000);
   expect(res.novo).toBe(true);
   expect(res.avatar.usuario).toBe('fulano');
-  expect(['blob', 'pixel']).toContain(res.avatar.estilo);
   expect(res.removidos).toEqual([]);
 });
 
