@@ -16,10 +16,10 @@ test('broadcast entrega evento a um cliente conectado', async () => {
   cliente.on('message', (m) => recebidos.push(JSON.parse(m.toString())));
   await new Promise(r => cliente.on('open', r));
 
-  bridge.broadcast({ tipo: 'comentario', usuario: 'fulano' });
+  bridge.broadcast({ type: 'comment', username: 'fulano' });
   await esperar(50);
 
-  expect(recebidos).toEqual([{ tipo: 'comentario', usuario: 'fulano' }]);
+  expect(recebidos).toEqual([{ type: 'comment', username: 'fulano' }]);
   expect(bridge.clients()).toBe(1);
 
   cliente.close();
@@ -29,7 +29,7 @@ test('broadcast entrega evento a um cliente conectado', async () => {
 
 test('onConnect envia mensagem inicial ao novo cliente', async () => {
   const http = createServer();
-  const bridge = createBridge(http, (ws) => ws.send(JSON.stringify({ tipo: 'config', limiteAvatares: 7 })));
+  const bridge = createBridge(http, (ws) => ws.send(JSON.stringify({ type: 'config', avatarLimit: 7 })));
   await new Promise(r => http.listen(0, r));
   const porta = http.address().port;
 
@@ -39,7 +39,7 @@ test('onConnect envia mensagem inicial ao novo cliente', async () => {
   await new Promise(r => cliente.on('open', r));
   await esperar(50);
 
-  expect(recebidos).toEqual([{ tipo: 'config', limiteAvatares: 7 }]);
+  expect(recebidos).toEqual([{ type: 'config', avatarLimit: 7 }]);
 
   cliente.close();
   bridge.close();
