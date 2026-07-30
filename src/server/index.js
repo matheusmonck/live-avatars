@@ -2,7 +2,7 @@ import { UserOfflineError } from 'tiktok-live-connector';
 import { loadConfig } from './config.js';
 import { createStaticServer } from './static-server.js';
 import { createBridge } from './bridge.js';
-import { criarConnector } from './connector.js';
+import { createConnector } from './connector.js';
 import { iniciarSimulador } from './simulator.js';
 
 const MODO_SIM = process.argv.includes('--sim');
@@ -51,30 +51,30 @@ function main() {
     console.warn('     Para testar o overlay sem TikTok, rode com --sim.\n');
   }
 
-  conectarComRetry(cfg, bridge);
+  connectWithRetry(cfg, bridge);
 }
 
-function conectarComRetry(cfg, bridge) {
-  const connector = criarConnector(cfg.username, {
+function connectWithRetry(cfg, bridge) {
+  const connector = createConnector(cfg.username, {
     signApiKey: cfg.signApiKey,
-    aoEvento: (e) => bridge.broadcast(e),
-    aoStatus: (s) => {
-      if (s.estado === 'conectado') console.log(`  Conectado à live de @${cfg.username} ✅`);
-      if (s.estado === 'desconectado') tentarReconectar(cfg, bridge, 'live encerrada/queda');
+    onEvent: (e) => bridge.broadcast(e),
+    onStatus: (s) => {
+      if (s.state === 'connected') console.log(`  Conectado à live de @${cfg.username} ✅`);
+      if (s.state === 'disconnected') retryConnection(cfg, bridge, 'live encerrada/queda');
     },
   });
-  connector.conectar().catch((err) => {
+  connector.connect().catch((err) => {
     const offline = err instanceof UserOfflineError;
-    const motivo = offline
+    const reason = offline
       ? `@${cfg.username} não está ao vivo agora`
       : `falha ao conectar em @${cfg.username} (${String(err?.message ?? err).slice(0, 120)})`;
-    tentarReconectar(cfg, bridge, motivo);
+    retryConnection(cfg, bridge, reason);
   });
 }
 
-function tentarReconectar(cfg, bridge, motivo) {
-  console.log(`  ⚠  ${motivo}. Tentando novamente em 15s...`);
-  setTimeout(() => conectarComRetry(cfg, bridge), 15000);
+function retryConnection(cfg, bridge, reason) {
+  console.log(`  ⚠  ${reason}. Tentando novamente em 15s...`);
+  setTimeout(() => connectWithRetry(cfg, bridge), 15000);
 }
 
 main();
