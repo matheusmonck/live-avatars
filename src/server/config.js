@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,9 +17,9 @@ function clamp(value, min, max, fallback) {
 }
 
 // Lê o config.json (chaves em PT — contrato do usuário) e devolve objeto EN.
+// Username vazio é permitido: conexão TikTok só é exigida pelo gerenciador de conexão.
 export function validateConfig(raw) {
   const username = String(raw?.usuarioTikTok ?? "").trim().replace(/^@/, "");
-  if (!username) throw new Error("config: usuarioTikTok é obrigatório");
   return {
     username,
     avatarLimit: Math.round(clamp(raw.limiteAvatares, 1, 60, DEFAULT_CONFIG.avatarLimit)),
@@ -27,6 +27,37 @@ export function validateConfig(raw) {
     effectsVolume: clamp(raw.volumeEfeitos, 0, 1, DEFAULT_CONFIG.effectsVolume),
     port: Math.round(clamp(raw.porta, 1024, 65535, DEFAULT_CONFIG.port)),
   };
+}
+
+// Mapeia campos EN de volta para as chaves PT do contrato do usuário.
+export function toRawConfig(en) {
+  return {
+    usuarioTikTok: en.username,
+    limiteAvatares: en.avatarLimit,
+    inatividadeSegundos: en.inactivitySeconds,
+    volumeEfeitos: en.effectsVolume,
+    porta: en.port,
+  };
+}
+
+function caminhoConfig() {
+  const here = dirname(fileURLToPath(import.meta.url));
+  return resolve(here, "../../config/config.json");
+}
+
+// Grava a config (chaves PT) e devolve o objeto EN validado.
+export function saveConfig(en, configPath = caminhoConfig()) {
+  const raw = toRawConfig(en);
+  const cfg = validateConfig(raw);
+  writeFileSync(configPath, JSON.stringify(raw, null, 2) + "\n", "utf8");
+  return cfg;
+}
+
+// Grava a chave de API no arquivo local (não versionado).
+export function saveKey(signApiKey, keyPath) {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const path = keyPath ?? resolve(here, "../../config/config.local.json");
+  writeFileSync(path, JSON.stringify({ signApiKey: String(signApiKey ?? "").trim() }, null, 2) + "\n", "utf8");
 }
 
 function readApiKey(here) {
@@ -43,8 +74,7 @@ function readApiKey(here) {
 
 export function loadConfig() {
   const here = dirname(fileURLToPath(import.meta.url));
-  const filePath = resolve(here, "../../config/config.json");
-  const raw = JSON.parse(readFileSync(filePath, "utf8"));
+  const raw = JSON.parse(readFileSync(caminhoConfig(), "utf8"));
   const cfg = validateConfig(raw);
   cfg.signApiKey = readApiKey(here);
   return cfg;
