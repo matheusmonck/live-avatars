@@ -7,5 +7,7 @@ dist/
 config/config.local.json
 src/overlay/assets/characters-local/
 src/overlay/characters.local.json
+src/overlay/assets/terrain-local/
+src/overlay/terrain.local.json
 admin/node_modules
 !admin/dist
