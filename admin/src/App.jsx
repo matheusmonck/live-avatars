@@ -2,6 +2,7 @@ import { ConfigForm } from './ConfigForm.jsx';
 import { KeyField } from './KeyField.jsx';
 import { ControlPanel } from './ControlPanel.jsx';
 import { SpriteManager } from './SpriteManager.jsx';
+import { TerrainManager } from './TerrainManager.jsx';
 
 export function App() {
   return (
@@ -11,6 +12,7 @@ export function App() {
       <KeyField />
       <ConfigForm />
       <SpriteManager />
+      <TerrainManager />
     </main>
   );
 }

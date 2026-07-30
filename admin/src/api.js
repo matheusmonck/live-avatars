@@ -16,3 +16,10 @@ export const saveSprite = (sprite) =>
   fetch('/admin/api/sprites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(sprite) }).then(j);
 export const deleteSprite = (id) =>
   fetch(`/admin/api/sprites/${encodeURIComponent(id)}`, { method: 'DELETE' }).then(j);
+export const getTerrain = () => fetch('/admin/api/terrain').then(j);
+export const saveTerrain = (t) =>
+  fetch('/admin/api/terrain', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(t) }).then(j);
+export const setActiveTerrain = (active) =>
+  fetch('/admin/api/terrain/active', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active }) }).then(j);
+export const deleteTerrain = (file) =>
+  fetch(`/admin/api/terrain/${encodeURIComponent(file)}`, { method: 'DELETE' }).then(j);
