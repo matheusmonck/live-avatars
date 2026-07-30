@@ -1,5 +1,5 @@
 import { criarRegistry } from './avatar-registry.js';
-import { criarThrottle } from './throttle.js';
+import { createThrottle } from './throttle.js';
 import { criarAvatarVisual } from './avatar.js';
 import * as R from './reactions.js';
 
@@ -8,7 +8,7 @@ export function criarGerenciador(cena, cfg) {
     limite: cfg.limiteAvatares,
     inatividadeMs: cfg.inatividadeSegundos * 1000,
   });
-  const throttle = criarThrottle(1500);
+  const throttle = createThrottle(1500);
   const TIPOS_THROTTLED = new Set(['curtida', 'seguir', 'compartilhar']);
   const visuais = new Map(); // usuario -> avatarVisual
 
@@ -28,7 +28,7 @@ export function criarGerenciador(cena, cfg) {
   }
 
   function tratar(evento) {
-    if (TIPOS_THROTTLED.has(evento.tipo) && !throttle.permitir(evento.tipo + ':' + evento.usuario)) return;
+    if (TIPOS_THROTTLED.has(evento.tipo) && !throttle.allow(evento.tipo + ':' + evento.usuario)) return;
     const v = garantir(evento);
     if (!v) return;
     switch (evento.tipo) {

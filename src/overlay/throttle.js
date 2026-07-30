@@ -1,13 +1,13 @@
 // Throttle por usuário: evita animar N vezes numa enxurrada de eventos iguais
 // (ex: rajada de curtidas). `agora` é injetável pra facilitar testes.
-export function criarThrottle(janelaMs, agora = () => Date.now()) {
-  const ultimo = new Map();
+export function createThrottle(windowMs, now = () => Date.now()) {
+  const last = new Map();
   return {
-    permitir(usuario) {
-      const t = agora();
-      const anterior = ultimo.get(usuario) ?? -Infinity;
-      if (t - anterior < janelaMs) return false;
-      ultimo.set(usuario, t);
+    allow(key) {
+      const t = now();
+      const previous = last.get(key) ?? -Infinity;
+      if (t - previous < windowMs) return false;
+      last.set(key, t);
       return true;
     },
   };
