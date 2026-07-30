@@ -1,25 +1,25 @@
 import { createScene } from './scene.js';
-import { conectarWS } from './ws-client.js';
+import { connectWS } from './ws-client.js';
 import { createManager } from './avatar-manager.js';
 import { loadCharacters } from './characters.js';
 
 // Valores padrão só até o backend enviar o frame { tipo: 'config' } (fonte de
 // verdade = config/config.json). O overlay se reconfigura ao recebê-lo.
-const CFG_PADRAO = { limiteAvatares: 18, inatividadeSegundos: 150 };
+const DEFAULT_CONFIG = { limiteAvatares: 18, inatividadeSegundos: 150 };
 
 const statusEl = document.getElementById('status');
 
-const scene = await createScene(document.getElementById('palco'));
+const scene = await createScene(document.getElementById('stage'));
 await loadCharacters();
-const manager = createManager(scene, CFG_PADRAO);
+const manager = createManager(scene, DEFAULT_CONFIG);
 
-conectarWS({
-  aoEvento: (evento) => {
-    if (evento.tipo === 'config') { manager.configure(evento); return; }
-    manager.handle(evento);
+connectWS({
+  onEvent: (event) => {
+    if (event.tipo === 'config') { manager.configure(event); return; }
+    manager.handle(event);
   },
-  aoStatus: (s) => {
-    statusEl.textContent = s === 'conectado' ? '' : (s === 'reconectando' ? 'reconectando…' : s);
-    statusEl.className = s === 'conectado' ? 'ok' : '';
+  onStatus: (s) => {
+    statusEl.textContent = s === 'connected' ? '' : (s === 'reconnecting' ? 'reconectando…' : s);
+    statusEl.className = s === 'connected' ? 'ok' : '';
   },
 });
