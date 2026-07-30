@@ -1,5 +1,5 @@
 export function createRegistry({ limit, inactivityMs }) {
-  // usuario -> { usuario, lastInteraction }
+  // username -> { username, lastInteraction }
   const avatars = new Map();
 
   function oldest() {
@@ -21,10 +21,10 @@ export function createRegistry({ limit, inactivityMs }) {
       while (avatars.size >= limit) {
         const old = oldest();
         if (!old) break;
-        avatars.delete(old.usuario);
-        removed.push(old.usuario);
+        avatars.delete(old.username);
+        removed.push(old.username);
       }
-      const avatar = { usuario: username, lastInteraction: now };
+      const avatar = { username, lastInteraction: now };
       avatars.set(username, avatar);
       return { isNew: true, avatar, removed };
     },
@@ -32,7 +32,7 @@ export function createRegistry({ limit, inactivityMs }) {
     expireInactive(now) {
       const removed = [];
       for (const a of avatars.values()) {
-        if (now - a.lastInteraction > inactivityMs) removed.push(a.usuario);
+        if (now - a.lastInteraction > inactivityMs) removed.push(a.username);
       }
       for (const u of removed) avatars.delete(u);
       return removed;

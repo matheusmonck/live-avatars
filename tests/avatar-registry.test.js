@@ -5,7 +5,7 @@ test('registrar cria avatar novo', () => {
   const r = createRegistry({ limit: 5, inactivityMs: 1000 });
   const res = r.register('fulano', 1000);
   expect(res.isNew).toBe(true);
-  expect(res.avatar.usuario).toBe('fulano');
+  expect(res.avatar.username).toBe('fulano');
   expect(res.removed).toEqual([]);
 });
 
