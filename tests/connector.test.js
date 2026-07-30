@@ -18,7 +18,7 @@ test('encaminha comentário normalizado', async () => {
   });
   await c.connect();
   conexao.emit('chat', { user: { displayId: 'ana', nickname: 'Ana', avatarThumb: { urlList: ['f'] } }, content: 'oi' });
-  expect(recebidos[0]).toEqual({ tipo: 'comentario', usuario: 'ana', nome: 'Ana', fotoUrl: 'f' });
+  expect(recebidos[0]).toEqual({ type: 'comment', username: 'ana', name: 'Ana', avatarUrl: 'f' });
 });
 
 test('presente streakável intermediário não é encaminhado', async () => {
@@ -29,6 +29,6 @@ test('presente streakável intermediário não é encaminhado', async () => {
   conexao.emit('gift', { user: { displayId: 'ana' }, gift: { name: 'rosa', diamondCount: 1, type: 1 }, repeatCount: 1, repeatEnd: 0 });
   expect(recebidos).toHaveLength(0);
   conexao.emit('gift', { user: { displayId: 'ana' }, gift: { name: 'rosa', diamondCount: 1, type: 1 }, repeatCount: 2, repeatEnd: 1 });
-  expect(recebidos[0].tipo).toBe('presente');
-  expect(recebidos[0].valorMoedas).toBe(2);
+  expect(recebidos[0].type).toBe('gift');
+  expect(recebidos[0].coins).toBe(2);
 });

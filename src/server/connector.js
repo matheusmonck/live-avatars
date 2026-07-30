@@ -1,7 +1,7 @@
 import { TikTokLiveConnection } from 'tiktok-live-connector';
 import {
-  normalizarComentario, normalizarEntrar, normalizarCurtida,
-  normalizarSeguir, normalizarCompartilhar, normalizarPresente,
+  normalizeComment, normalizeJoin, normalizeLike,
+  normalizeFollow, normalizeShare, normalizeGift,
 } from './normalize.js';
 
 // Fábrica padrão da conexão real. Injetável nos testes.
@@ -22,17 +22,17 @@ export function createConnector(usuario, {
     if (event) onEvent(event);
   }
 
-  connection.on('chat', (d) => forward(normalizarComentario(d)));
-  connection.on('member', (d) => forward(normalizarEntrar(d)));
-  connection.on('like', (d) => forward(normalizarCurtida(d)));
-  connection.on('gift', (d) => forward(normalizarPresente(d)));
-  connection.on('follow', (d) => forward(normalizarSeguir(d)));
-  connection.on('share', (d) => forward(normalizarCompartilhar(d)));
+  connection.on('chat', (d) => forward(normalizeComment(d)));
+  connection.on('member', (d) => forward(normalizeJoin(d)));
+  connection.on('like', (d) => forward(normalizeLike(d)));
+  connection.on('gift', (d) => forward(normalizeGift(d)));
+  connection.on('follow', (d) => forward(normalizeFollow(d)));
+  connection.on('share', (d) => forward(normalizeShare(d)));
   // Versões antigas emitem 'social' com displayType indicando follow/share.
   connection.on('social', (d) => {
-    const tipo = String(d?.displayType ?? '');
-    if (tipo.includes('follow')) forward(normalizarSeguir(d));
-    else if (tipo.includes('share')) forward(normalizarCompartilhar(d));
+    const type = String(d?.displayType ?? '');
+    if (type.includes('follow')) forward(normalizeFollow(d));
+    else if (type.includes('share')) forward(normalizeShare(d));
   });
 
   connection.on('disconnected', () => onStatus({ state: 'disconnected' }));

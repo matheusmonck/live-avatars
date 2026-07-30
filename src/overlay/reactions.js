@@ -81,8 +81,8 @@ function explodeConfetti(scene, x, y, count) {
 }
 
 // Presente: leva o avatar pro destaque, aplica escala e confete proporcional.
-export function reactionGift(scene, avatar, evento) {
-  const fx = giftScale(evento.valorMoedas);
+export function reactionGift(scene, avatar, event) {
+  const fx = giftScale(event.coins);
   const target = scene.highlightPoint();
   const start = avatar.position();
   const base = scene.groundLine();

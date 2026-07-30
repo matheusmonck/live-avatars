@@ -1,4 +1,4 @@
-export const SIMULATABLE_TYPES = ['comentario', 'entrar', 'curtida', 'seguir', 'presente', 'compartilhar'];
+export const SIMULATABLE_TYPES = ['comment', 'join', 'like', 'follow', 'gift', 'share'];
 
 // Poucos espectadores recorrentes: como numa live real, as mesmas pessoas voltam
 // a interagir. Isso mantém a quantidade de avatares baixa e natural (≤ este pool),
@@ -8,12 +8,12 @@ const NAMES = ['ana.costa', 'bruninho', 'carla_m', 'dan', 'fefa', 'gustavo_tk', 
 // Distribuição realista de eventos: curtida e comentário dominam; seguir, presente
 // e compartilhar são bem mais raros. (peso = chance relativa)
 const TYPE_WEIGHTS = [
-  ['curtida', 45],
-  ['comentario', 30],
-  ['entrar', 12],
-  ['seguir', 6],
-  ['presente', 4],
-  ['compartilhar', 3],
+  ['like', 45],
+  ['comment', 30],
+  ['join', 12],
+  ['follow', 6],
+  ['gift', 4],
+  ['share', 3],
 ];
 
 // Presentes: os baratos são comuns, os caros raros.
@@ -37,12 +37,12 @@ function weightedPick(itens, weight, r) {
 export function randomEvent(rnd = Math.random) {
   const username = NAMES[Math.floor(rnd() * NAMES.length) % NAMES.length];
   const type = weightedPick(TYPE_WEIGHTS, (t) => t[1], rnd())[0];
-  const event = { tipo: type, usuario: username, nome: username, fotoUrl: `https://i.pravatar.cc/80?u=${username}` };
-  if (type === 'curtida') event.quantidade = Math.floor(rnd() * 10) + 1;
-  if (type === 'presente') {
+  const event = { type, username, name: username, avatarUrl: `https://i.pravatar.cc/80?u=${username}` };
+  if (type === 'like') event.count = Math.floor(rnd() * 10) + 1;
+  if (type === 'gift') {
     const p = weightedPick(GIFTS, (g) => g.weight, rnd());
-    event.presente = p.name;
-    event.valorMoedas = p.coins;
+    event.giftName = p.name;
+    event.coins = p.coins;
   }
   return event;
 }

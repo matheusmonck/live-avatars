@@ -5,21 +5,21 @@ import * as R from './reactions.js';
 
 export function createManager(scene, cfg) {
   const registry = createRegistry({
-    limit: cfg.limiteAvatares,
-    inactivityMs: cfg.inatividadeSegundos * 1000,
+    limit: cfg.avatarLimit,
+    inactivityMs: cfg.inactivitySeconds * 1000,
   });
   const throttle = createThrottle(1500);
-  const THROTTLED_TYPES = new Set(['curtida', 'seguir', 'compartilhar']);
+  const THROTTLED_TYPES = new Set(['like', 'follow', 'share']);
   const visuals = new Map(); // usuario -> avatarVisual
 
   function ensure(event) {
-    const result = registry.register(event.usuario, Date.now());
+    const result = registry.register(event.username, Date.now());
     for (const u of result.removed) removeVisual(u);
     if (result.isNew) {
       const v = createAvatarVisual(result.avatar, scene);
-      visuals.set(event.usuario, v);
+      visuals.set(event.username, v);
     }
-    return visuals.get(event.usuario);
+    return visuals.get(event.username);
   }
 
   function removeVisual(usuario) {
@@ -28,16 +28,16 @@ export function createManager(scene, cfg) {
   }
 
   function handle(event) {
-    if (THROTTLED_TYPES.has(event.tipo) && !throttle.allow(event.tipo + ':' + event.usuario)) return;
+    if (THROTTLED_TYPES.has(event.type) && !throttle.allow(event.type + ':' + event.username)) return;
     const v = ensure(event);
     if (!v) return;
-    switch (event.tipo) {
-      case 'comentario': v.jump(); break;
-      case 'entrar': break; // já entrou andando ao ser criado
-      case 'curtida': R.reactionHearts(scene, v); break;
-      case 'seguir': R.reactionFollow(scene, v, event.nome || event.usuario); break;
-      case 'compartilhar': R.reactionStars(scene, v); break;
-      case 'presente': R.reactionGift(scene, v, event); break;
+    switch (event.type) {
+      case 'comment': v.jump(); break;
+      case 'join': break; // já entrou andando ao ser criado
+      case 'like': R.reactionHearts(scene, v); break;
+      case 'follow': R.reactionFollow(scene, v, event.name || event.username); break;
+      case 'share': R.reactionStars(scene, v); break;
+      case 'gift': R.reactionGift(scene, v, event); break;
     }
   }
 
@@ -53,8 +53,8 @@ export function createManager(scene, cfg) {
 
   function configure(newCfg) {
     registry.configure({
-      limit: newCfg.limiteAvatares,
-      inactivityMs: newCfg.inatividadeSegundos * 1000,
+      limit: newCfg.avatarLimit,
+      inactivityMs: newCfg.inactivitySeconds * 1000,
     });
   }
 

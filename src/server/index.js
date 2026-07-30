@@ -12,9 +12,9 @@ function main() {
   const http = createStaticServer();
   const bridge = createBridge(http, (ws) => {
     ws.send(JSON.stringify({
-      tipo: 'config',
-      limiteAvatares: cfg.avatarLimit,
-      inatividadeSegundos: cfg.inactivitySeconds,
+      type: 'config',
+      avatarLimit: cfg.avatarLimit,
+      inactivitySeconds: cfg.inactivitySeconds,
     }));
   });
 
