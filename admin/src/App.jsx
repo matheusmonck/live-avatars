@@ -1,6 +1,7 @@
 import { ConfigForm } from './ConfigForm.jsx';
 import { KeyField } from './KeyField.jsx';
 import { ControlPanel } from './ControlPanel.jsx';
+import { SpriteManager } from './SpriteManager.jsx';
 
 export function App() {
   return (
@@ -9,6 +10,7 @@ export function App() {
       <ControlPanel />
       <KeyField />
       <ConfigForm />
+      <SpriteManager />
     </main>
   );
 }

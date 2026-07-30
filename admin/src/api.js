@@ -11,3 +11,8 @@ export function onStatus(cb) {
   ws.onmessage = (e) => { try { const f = JSON.parse(e.data); if (f.type === 'status') cb(f); } catch {} };
   return () => ws.close();
 }
+export const getSprites = () => fetch('/admin/api/sprites').then(j);
+export const saveSprite = (sprite) =>
+  fetch('/admin/api/sprites', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(sprite) }).then(j);
+export const deleteSprite = (id) =>
+  fetch(`/admin/api/sprites/${encodeURIComponent(id)}`, { method: 'DELETE' }).then(j);
