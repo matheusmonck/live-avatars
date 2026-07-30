@@ -10,3 +10,16 @@ test('gera evento com formato normalizado válido', () => {
     if (e.tipo === 'presente') expect(typeof e.valorMoedas).toBe('number');
   }
 });
+
+test('evento de presente traz valorMoedas numérico', () => {
+  const e = gerarEventoAleatorio(() => 0.7); // índice 4 -> 'presente'
+  expect(e.tipo).toBe('presente');
+  expect(typeof e.valorMoedas).toBe('number');
+  expect(e.valorMoedas).toBeGreaterThan(0);
+});
+
+test('evento de curtida traz quantidade', () => {
+  const e = gerarEventoAleatorio(() => 0.4); // índice 2 -> 'curtida'
+  expect(e.tipo).toBe('curtida');
+  expect(e.quantidade).toBeGreaterThanOrEqual(1);
+});

@@ -8,7 +8,7 @@ export function criarBridge(httpServer) {
     broadcast(evento) {
       const msg = JSON.stringify(evento);
       for (const ws of wss.clients) {
-        if (ws.readyState === ws.OPEN) ws.send(msg);
+        if (ws.readyState === ws.OPEN) ws.send(msg, () => {}); // callback absorve erro se o socket fechar no meio
       }
     },
     clientes() { return wss.clients.size; },

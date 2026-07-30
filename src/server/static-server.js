@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { dirname, resolve, normalize, extname } from 'node:path';
+import { dirname, resolve, normalize, extname, sep } from 'node:path';
 
 const TIPOS = {
   '.html': 'text/html; charset=utf-8',
@@ -20,7 +20,7 @@ export function criarServidorEstatico() {
       let caminho = decodeURIComponent(req.url.split('?')[0]);
       if (caminho === '/') caminho = '/index.html';
       const abs = normalize(resolve(raizOverlay, '.' + caminho));
-      if (!abs.startsWith(raizOverlay)) { res.writeHead(403).end('proibido'); return; }
+      if (!abs.startsWith(raizOverlay + sep)) { res.writeHead(403).end('proibido'); return; }
       const conteudo = await readFile(abs);
       res.writeHead(200, { 'Content-Type': TIPOS[extname(abs)] ?? 'application/octet-stream' });
       res.end(conteudo);

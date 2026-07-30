@@ -11,6 +11,12 @@ function main() {
   const http = criarServidorEstatico();
   const bridge = criarBridge(http);
 
+  process.on('SIGINT', () => {
+    console.log('\n  Encerrando Live Avatars...');
+    http.close();
+    process.exit(0);
+  });
+
   http.listen(cfg.porta, () => {
     console.log(`\n  Live Avatars no ar 🎉`);
     console.log(`  Overlay:  http://localhost:${cfg.porta}`);

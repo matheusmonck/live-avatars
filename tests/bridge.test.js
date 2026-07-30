@@ -23,5 +23,6 @@ test('broadcast entrega evento a um cliente conectado', async () => {
   expect(bridge.clientes()).toBe(1);
 
   cliente.close();
+  bridge.fechar();
   await new Promise(r => http.close(r));
 });
