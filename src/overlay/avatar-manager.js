@@ -8,6 +8,7 @@ export function createManager(scene, cfg) {
     limit: cfg.avatarLimit,
     inactivityMs: cfg.inactivitySeconds * 1000,
   });
+  const settings = { stageMode: cfg.stageMode !== false };
   const throttle = createThrottle(1500);
   const THROTTLED_TYPES = new Set(['like', 'follow', 'share']);
   const visuals = new Map(); // usuario -> avatarVisual
@@ -35,9 +36,9 @@ export function createManager(scene, cfg) {
       case 'comment': v.jump(); break;
       case 'join': break; // já entrou andando ao ser criado
       case 'like': R.reactionHearts(scene, v); break;
-      case 'follow': R.reactionFollow(scene, v, event.name || event.username); break;
+      case 'follow': R.reactionFollow(scene, v, event.name || event.username, { stage: settings.stageMode }); break;
       case 'share': R.reactionStars(scene, v); break;
-      case 'gift': R.reactionGift(scene, v, event); break;
+      case 'gift': R.reactionGift(scene, v, event, { stage: settings.stageMode }); break;
     }
   }
 
@@ -56,6 +57,7 @@ export function createManager(scene, cfg) {
       limit: newCfg.avatarLimit,
       inactivityMs: newCfg.inactivitySeconds * 1000,
     });
+    if (typeof newCfg.stageMode === 'boolean') settings.stageMode = newCfg.stageMode;
   }
 
   return { handle, configure };
