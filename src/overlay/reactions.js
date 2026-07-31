@@ -117,6 +117,7 @@ export function confettiBurst(scene, x, y, count) {
     const g = new PIXI.Graphics(confettiContext());
     g.tint = pick(TUNE.confetti.colors);
     g.x = x; g.y = y;
+    scene.effectsLayer.addChild(g);
     const ribbon = Math.random() < 0.5;
     g.scale.set(rand(0.5, 1.1) * (ribbon ? 0.5 : 1), rand(0.5, 1.1) * (ribbon ? 1.6 : 1));
     const baseSx = g.scale.x;
@@ -177,6 +178,7 @@ export function reactionFollow(scene, avatar, name, opts = {}) {
   scene.effectsLayer.addChild(banner);
   let t = 0;
   const anim = (ticker) => {
+    if (banner.destroyed) { scene.app.ticker.remove(anim); return; }
     t += ticker.deltaMS;
     banner.scale.set(easeOutBack(Math.min(1, t / 260))); // pop de entrada
     if (t > 2500) banner.alpha = Math.max(0, 1 - (t - 2500) / 800);
