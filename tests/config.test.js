@@ -28,8 +28,8 @@ test('força limites numéricos sãos', () => {
 });
 
 test('toRawConfig mapeia campos EN de volta para chaves PT', () => {
-  expect(toRawConfig({ username: 'ana', avatarLimit: 20, inactivitySeconds: 100, effectsVolume: 0.5, port: 9000 }))
-    .toEqual({ usuarioTikTok: 'ana', limiteAvatares: 20, inatividadeSegundos: 100, volumeEfeitos: 0.5, porta: 9000 });
+  expect(toRawConfig({ username: 'ana', avatarLimit: 20, inactivitySeconds: 100, effectsVolume: 0.5, stageMode: false, port: 9000 }))
+    .toEqual({ usuarioTikTok: 'ana', limiteAvatares: 20, inatividadeSegundos: 100, volumeEfeitos: 0.5, modoPalco: false, porta: 9000 });
 });
 
 test('saveConfig grava JSON com chaves PT e devolve config EN', () => {
@@ -51,4 +51,10 @@ test('saveConfig grava valores SANEADOS, não os crus fora de faixa', () => {
   expect(gravado.porta).toBe(1024);        // clampado (min 1024), não 99
   expect(gravado.limiteAvatares).toBe(60);  // clampado (max 60), não 999
   expect(gravado.usuarioTikTok).toBe('ana'); // @ removido
+});
+
+test('stageMode default true quando falta; aceita false', () => {
+  expect(validateConfig({ usuarioTikTok: 'x' }).stageMode).toBe(true);
+  expect(validateConfig({ usuarioTikTok: 'x', modoPalco: false }).stageMode).toBe(false);
+  expect(validateConfig({ usuarioTikTok: 'x', modoPalco: 'false' }).stageMode).toBe(false);
 });

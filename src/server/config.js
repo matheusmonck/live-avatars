@@ -7,6 +7,7 @@ export const DEFAULT_CONFIG = {
   avatarLimit: 18,
   inactivitySeconds: 150,
   effectsVolume: 0.6,
+  stageMode: true,
   port: 8737,
 };
 
@@ -14,6 +15,13 @@ function clamp(value, min, max, fallback) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
   return Math.min(max, Math.max(min, n));
+}
+
+function bool(value, fallback) {
+  if (value === true || value === false) return value;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return fallback;
 }
 
 // Lê o config.json (chaves em PT — contrato do usuário) e devolve objeto EN.
@@ -25,6 +33,7 @@ export function validateConfig(raw) {
     avatarLimit: Math.round(clamp(raw.limiteAvatares, 1, 60, DEFAULT_CONFIG.avatarLimit)),
     inactivitySeconds: Math.round(clamp(raw.inatividadeSegundos, 10, 3600, DEFAULT_CONFIG.inactivitySeconds)),
     effectsVolume: clamp(raw.volumeEfeitos, 0, 1, DEFAULT_CONFIG.effectsVolume),
+    stageMode: bool(raw.modoPalco, DEFAULT_CONFIG.stageMode),
     port: Math.round(clamp(raw.porta, 1024, 65535, DEFAULT_CONFIG.port)),
   };
 }
@@ -36,6 +45,7 @@ export function toRawConfig(en) {
     limiteAvatares: en.avatarLimit,
     inatividadeSegundos: en.inactivitySeconds,
     volumeEfeitos: en.effectsVolume,
+    modoPalco: en.stageMode,
     porta: en.port,
   };
 }
