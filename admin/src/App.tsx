@@ -4,6 +4,8 @@ import { Badge } from './ui/Badge';
 import { Tabs } from './ui/Tabs';
 import { ConnectionTab } from './tabs/ConnectionTab';
 import { ConfigTab } from './tabs/ConfigTab';
+import { SpritesTab } from './tabs/SpritesTab';
+import { TerrainTab } from './tabs/TerrainTab';
 
 const TABS = ['Conexão', 'Configuração', 'Sprites', 'Terreno'];
 
@@ -17,8 +19,8 @@ export function App() {
       <main>
         {tab === 'Conexão' && <ConnectionTab status={status} />}
         {tab === 'Configuração' && <ConfigTab />}
-        {tab === 'Sprites' && <p className="muted">Em breve…</p>}
-        {tab === 'Terreno' && <p className="muted">Em breve…</p>}
+        {tab === 'Sprites' && <SpritesTab />}
+        {tab === 'Terreno' && <TerrainTab />}
       </main>
     </div>
   );
