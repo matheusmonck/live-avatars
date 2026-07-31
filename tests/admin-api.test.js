@@ -19,6 +19,7 @@ const depsBase = () => ({
   listSprites: () => [{ id: 'hero', frames: 2, scale: 2, facing: 'front', source: 'default' }],
   saveSprite: vi.fn(),
   deleteSprite: vi.fn(),
+  setSpriteHidden: vi.fn(),
   listTerrains: () => ({ active: null, items: [] }),
   saveTerrain: vi.fn(() => ({ file: 'grama.png' })),
   setActiveTerrain: vi.fn(),
@@ -159,5 +160,14 @@ test('PUT /admin/api/terrain/active faz broadcast do frame terrain', async () =>
     const r = await fetch(`${base}/admin/api/terrain/active`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active: 'grama.png' }) });
     expect(r.status).toBe(200);
     expect(deps.bridge.broadcast).toHaveBeenCalledWith(expect.objectContaining({ type: 'terrain' }));
+  });
+});
+
+test('PUT /admin/api/sprites/hidden chama setSpriteHidden', async () => {
+  const deps = depsBase();
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/sprites/hidden`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: 'hero', hidden: true }) });
+    expect(r.status).toBe(200);
+    expect(deps.setSpriteHidden).toHaveBeenCalledWith('hero', true);
   });
 });

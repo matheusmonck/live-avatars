@@ -1,5 +1,5 @@
 import { loadConfig as loadConfigReal, saveConfig as saveConfigReal, saveKey as saveKeyReal } from './config.js';
-import { listSprites as listSpritesReal, saveSprite as saveSpriteReal, deleteSprite as deleteSpriteReal } from './sprites.js';
+import { listSprites as listSpritesReal, saveSprite as saveSpriteReal, deleteSprite as deleteSpriteReal, setSpriteHidden as setSpriteHiddenReal } from './sprites.js';
 import { listTerrains as listTerrainsReal, saveTerrain as saveTerrainReal, setActiveTerrain as setActiveTerrainReal, deleteTerrain as deleteTerrainReal, setTerrainOffset as setTerrainOffsetReal } from './terrains.js';
 
 // Handler das rotas /admin/api/*. Deps injetáveis para teste.
@@ -12,6 +12,7 @@ export function createAdminApi({
   listSprites = listSpritesReal,
   saveSprite = saveSpriteReal,
   deleteSprite = deleteSpriteReal,
+  setSpriteHidden = setSpriteHiddenReal,
   listTerrains = listTerrainsReal,
   saveTerrain = saveTerrainReal,
   setActiveTerrain = setActiveTerrainReal,
@@ -65,6 +66,11 @@ export function createAdminApi({
     if (path === '/admin/api/sprites' && req.method === 'POST') {
       const body = await readBody(req);
       try { saveSprite(body); return json(res, 200, { ok: true }); }
+      catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+    }
+    if (path === '/admin/api/sprites/hidden' && req.method === 'PUT') {
+      const body = await readBody(req);
+      try { setSpriteHidden(body.id, body.hidden); return json(res, 200, { ok: true }); }
       catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     if (path.startsWith('/admin/api/sprites/') && req.method === 'DELETE') {
