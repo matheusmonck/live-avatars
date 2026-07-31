@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { getTerrain, saveTerrain, setActiveTerrain, deleteTerrain, type TerrainState } from '../api';
+import { getTerrain, saveTerrain, setActiveTerrain, deleteTerrain, setTerrainOffset, type TerrainState } from '../api';
 import { Card } from '../ui/Card';
 import { Field } from '../ui/Field';
 import { Button } from '../ui/Button';
@@ -10,7 +10,8 @@ const readDataURL = (file: File) => new Promise<string>((res) => { const r = new
 export function TerrainTab() {
   const [state, setState] = useState<TerrainState>({ active: null, items: [] });
   const [name, setName] = useState(''); const [file, setFile] = useState<File | null>(null); const [msg, setMsg] = useState('');
-  const load = () => getTerrain().then(setState);
+  const [offset, setOffset] = useState(0);
+  const load = () => getTerrain().then((s) => { setState(s); setOffset(s.items.find((i) => i.file === s.active)?.offset ?? 0); });
   useEffect(() => { load(); }, []);
   const send = async (e: FormEvent) => {
     e.preventDefault(); if (!file) return;
@@ -23,6 +24,13 @@ export function TerrainTab() {
   return (
     <Card title="Terreno (cenário de fundo)">
       <p>Ativo: <strong>{state.active ?? 'nenhum'}</strong> {state.active ? <Button onClick={() => use(null)}>usar nenhum</Button> : null}</p>
+      {state.active ? (
+        <label className="field">
+          <span>Ajuste vertical: {offset}px</span>
+          <input type="range" min={-400} max={400} value={offset}
+            onChange={(e) => { const v = Number(e.target.value); setOffset(v); setTerrainOffset(state.active!, v); }} />
+        </label>
+      ) : null}
       <ul className="list">
         {state.items.map((t) => (
           <li key={t.file} className="row">

@@ -2,7 +2,7 @@ export type ConnState = 'idle' | 'connecting' | 'connected' | 'reconnecting' | '
 export interface Status { type?: 'status'; state: ConnState; username?: string; room?: string; reason?: string }
 export interface Config { username: string; avatarLimit: number; inactivitySeconds: number; effectsVolume: number; stageMode: boolean; port: number; hasKey: boolean }
 export interface SpriteItem { id: string; frames: number; scale: number; facing: string; source: 'default' | 'local' }
-export interface TerrainState { active: string | null; items: { file: string }[] }
+export interface TerrainState { active: string | null; items: { file: string; offset: number }[] }
 export interface ApiResult { ok?: boolean; error?: string; [k: string]: unknown }
 
 const asJson = (r: Response) => r.json();
@@ -22,6 +22,7 @@ export const getTerrain = (): Promise<TerrainState> => fetch('/admin/api/terrain
 export const saveTerrain = (t: { name: string; image: string }): Promise<ApiResult> => fetch('/admin/api/terrain', jsonReq('POST', t)).then(asJson);
 export const setActiveTerrain = (active: string | null): Promise<ApiResult> => fetch('/admin/api/terrain/active', jsonReq('PUT', { active })).then(asJson);
 export const deleteTerrain = (file: string): Promise<ApiResult> => fetch(`/admin/api/terrain/${encodeURIComponent(file)}`, { method: 'DELETE' }).then(asJson);
+export const setTerrainOffset = (file: string, offset: number): Promise<ApiResult> => fetch('/admin/api/terrain/offset', jsonReq('PUT', { file, offset })).then(asJson);
 
 export function subscribeStatus(cb: (s: Status) => void): () => void {
   const ws = new WebSocket(`ws://${location.host}`);

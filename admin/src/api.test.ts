@@ -1,5 +1,5 @@
 import { test, expect, vi, beforeEach } from 'vitest';
-import { getConfig, putKey, saveSprite, putConfig } from './api';
+import { getConfig, putKey, saveSprite, putConfig, setTerrainOffset } from './api';
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ ok: true }) } as Response)));
@@ -27,5 +27,13 @@ test('putConfig manda PUT com stageMode no corpo', async () => {
   expect(fetch).toHaveBeenCalledWith('/admin/api/config', expect.objectContaining({
     method: 'PUT',
     body: expect.stringContaining('"stageMode":false'),
+  }));
+});
+
+test('setTerrainOffset manda PUT com file e offset', async () => {
+  await setTerrainOffset('grama.png', -30);
+  expect(fetch).toHaveBeenCalledWith('/admin/api/terrain/offset', expect.objectContaining({
+    method: 'PUT',
+    body: JSON.stringify({ file: 'grama.png', offset: -30 }),
   }));
 });
