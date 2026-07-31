@@ -1,5 +1,5 @@
 import { test, expect, vi, beforeEach } from 'vitest';
-import { getConfig, putKey, saveSprite, putConfig, setTerrainOffset } from './api';
+import { getConfig, putKey, saveSprite, putConfig, setTerrainOffset, setSpriteHidden } from './api';
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ ok: true }) } as Response)));
@@ -35,5 +35,13 @@ test('setTerrainOffset manda PUT com file e offset', async () => {
   expect(fetch).toHaveBeenCalledWith('/admin/api/terrain/offset', expect.objectContaining({
     method: 'PUT',
     body: JSON.stringify({ file: 'grama.png', offset: -30 }),
+  }));
+});
+
+test('setSpriteHidden manda PUT com id e hidden', async () => {
+  await setSpriteHidden('hero', true);
+  expect(fetch).toHaveBeenCalledWith('/admin/api/sprites/hidden', expect.objectContaining({
+    method: 'PUT',
+    body: JSON.stringify({ id: 'hero', hidden: true }),
   }));
 });

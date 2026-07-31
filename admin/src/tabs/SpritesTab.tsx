@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { getSprites, saveSprite, deleteSprite, type SpriteItem } from '../api';
+import { getSprites, saveSprite, deleteSprite, setSpriteHidden, type SpriteItem } from '../api';
 import { Card } from '../ui/Card';
 import { Field } from '../ui/Field';
 import { Button } from '../ui/Button';
@@ -26,15 +26,18 @@ export function SpritesTab() {
     if (!r?.error) { setMsg('Adicionado ✓ (atualize a fonte no OBS)'); setId(''); setFiles([]); load(); } else setMsg(r.error);
   };
   const remove = async (sid: string) => { if (confirm(`Remover o sprite "${sid}"?`)) { await deleteSprite(sid); load(); } };
+  const toggleHidden = async (s: SpriteItem) => { await setSpriteHidden(s.id, !s.hidden); load(); };
   const hasLocal = sprites.some((s) => s.source === 'local');
   return (
     <Card title="Sprites de personagem">
       <ul className="list">
         {sprites.map((s) => (
-          <li key={s.id} className="row">
+          <li key={s.id} className="row" style={s.hidden ? { opacity: 0.5 } : undefined}>
             <Preview base={baseFor(s)} id={s.id} frames={s.frames} />
-            <span>{s.id} <small className="muted">({s.source === 'local' ? 'seu' : 'padrão'})</small></span>
-            {s.source === 'local' ? <Button variant="danger" onClick={() => remove(s.id)}>Remover</Button> : null}
+            <span>{s.id} <small className="muted">({s.source === 'local' ? 'seu' : 'padrão'}{s.hidden ? ', oculto' : ''})</small></span>
+            {s.source === 'local'
+              ? <Button variant="danger" onClick={() => remove(s.id)}>Remover</Button>
+              : <Button onClick={() => toggleHidden(s)}>{s.hidden ? 'Restaurar' : 'Ocultar'}</Button>}
           </li>
         ))}
       </ul>
