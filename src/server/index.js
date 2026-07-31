@@ -15,7 +15,7 @@ function main() {
 
   const bridge = createBridge(http, (ws) => {
     const c = loadConfig();
-    ws.send(JSON.stringify({ type: 'config', avatarLimit: c.avatarLimit, inactivitySeconds: c.inactivitySeconds }));
+    ws.send(JSON.stringify({ type: 'config', avatarLimit: c.avatarLimit, inactivitySeconds: c.inactivitySeconds, stageMode: c.stageMode }));
     ws.send(JSON.stringify({ type: 'status', ...manager.getStatus() }));
   });
 

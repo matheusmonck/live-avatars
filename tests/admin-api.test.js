@@ -34,6 +34,16 @@ test('GET /admin/api/config devolve config sem a chave, com hasKey', async () =>
   });
 });
 
+test('PUT /admin/api/config faz broadcast do frame config com stageMode', async () => {
+  const deps = depsBase();
+  await comServidor(deps, async (base) => {
+    const body = { username: 'ana', avatarLimit: 18, inactivitySeconds: 150, effectsVolume: 0.6, stageMode: false, port: 8737 };
+    const r = await fetch(`${base}/admin/api/config`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    expect(r.status).toBe(200);
+    expect(deps.bridge.broadcast).toHaveBeenCalledWith(expect.objectContaining({ type: 'config', stageMode: false }));
+  });
+});
+
 test('POST /admin/api/start chama manager.start', async () => {
   const deps = depsBase();
   await comServidor(deps, async (base) => {

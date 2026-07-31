@@ -3,5 +3,6 @@
   "limiteAvatares": 18,
   "inatividadeSegundos": 150,
   "volumeEfeitos": 0.6,
+  "modoPalco": true,
   "porta": 8737
 }

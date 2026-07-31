@@ -39,7 +39,7 @@ export function createAdminApi({
       const body = await readBody(req);
       try {
         const cfg = saveConfig(body);
-        bridge.broadcast({ type: 'config', avatarLimit: cfg.avatarLimit, inactivitySeconds: cfg.inactivitySeconds });
+        bridge.broadcast({ type: 'config', avatarLimit: cfg.avatarLimit, inactivitySeconds: cfg.inactivitySeconds, stageMode: cfg.stageMode });
         return json(res, 200, { ok: true });
       } catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
