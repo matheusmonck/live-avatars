@@ -57,4 +57,13 @@ test('stageMode default true quando falta; aceita false', () => {
   expect(validateConfig({ usuarioTikTok: 'x' }).stageMode).toBe(true);
   expect(validateConfig({ usuarioTikTok: 'x', modoPalco: false }).stageMode).toBe(false);
   expect(validateConfig({ usuarioTikTok: 'x', modoPalco: 'false' }).stageMode).toBe(false);
+  expect(validateConfig({ usuarioTikTok: 'x', modoPalco: 'true' }).stageMode).toBe(true);
+});
+
+test('saveConfig persiste modoPalco: false no JSON', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'la-'));
+  const path = join(dir, 'config.json');
+  saveConfig({ username: 'x', avatarLimit: 18, inactivitySeconds: 150, effectsVolume: 0.6, stageMode: false, port: 8737 }, path);
+  const gravado = JSON.parse(readFileSync(path, 'utf8'));
+  expect(gravado.modoPalco).toBe(false);
 });
