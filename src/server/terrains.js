@@ -13,16 +13,26 @@ function overlayBase(overlayDir) {
 function readJson(path) { try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return null; } }
 function statePath(base) { return join(base, 'terrain.local.json'); }
 function terrainDir(base) { return join(base, 'assets/terrain-local'); }
-function writeState(base, active) {
-  writeFileSync(statePath(base), JSON.stringify({ active: active ?? null }, null, 2) + '\n', 'utf8');
+function readState(base) {
+  const s = readJson(statePath(base));
+  return { active: s?.active ?? null, offsets: s?.offsets ?? {} };
+}
+function writeState(base, state) {
+  const out = { active: state.active ?? null, offsets: state.offsets ?? {} };
+  writeFileSync(statePath(base), JSON.stringify(out, null, 2) + '\n', 'utf8');
+}
+function clampOffset(v) {
+  const n = Math.round(Number(v));
+  if (!Number.isFinite(n)) return 0;
+  return Math.min(400, Math.max(-400, n));
 }
 
 export function listTerrains({ overlayDir } = {}) {
   const base = overlayBase(overlayDir);
-  const active = readJson(statePath(base))?.active ?? null;
+  const st = readState(base);
   let items = [];
-  try { items = readdirSync(terrainDir(base)).map((file) => ({ file })); } catch {}
-  return { active, items };
+  try { items = readdirSync(terrainDir(base)).map((file) => ({ file, offset: st.offsets[file] ?? 0 })); } catch {}
+  return { active: st.active, items };
 }
 
 export function saveTerrain({ name, image } = {}, { overlayDir } = {}) {
@@ -34,18 +44,32 @@ export function saveTerrain({ name, image } = {}, { overlayDir } = {}) {
   mkdirSync(terrainDir(base), { recursive: true });
   const file = `${name}.${ext}`;
   writeFileSync(join(terrainDir(base), file), Buffer.from(image.slice(m[0].length), 'base64'));
-  writeState(base, file);
+  const st = readState(base);
+  st.active = file;
+  writeState(base, st);
   return { file };
 }
 
 export function setActiveTerrain(file, { overlayDir } = {}) {
   const base = overlayBase(overlayDir);
   if (file && !existsSync(join(terrainDir(base), file))) throw new Error('terreno não encontrado');
-  writeState(base, file ?? null);
+  const st = readState(base);
+  st.active = file ?? null;
+  writeState(base, st);
+}
+
+export function setTerrainOffset(file, offset, { overlayDir } = {}) {
+  const base = overlayBase(overlayDir);
+  const st = readState(base);
+  st.offsets[file] = clampOffset(offset);
+  writeState(base, st);
 }
 
 export function deleteTerrain(file, { overlayDir } = {}) {
   const base = overlayBase(overlayDir);
   rmSync(join(terrainDir(base), file), { force: true });
-  if ((readJson(statePath(base))?.active ?? null) === file) writeState(base, null);
+  const st = readState(base);
+  if (st.active === file) st.active = null;
+  delete st.offsets[file];
+  writeState(base, st);
 }
