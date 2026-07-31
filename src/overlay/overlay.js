@@ -15,7 +15,7 @@ try {
   const res = await fetch('terrain.local.json');
   if (res.ok) {
     const t = await res.json();
-    if (t?.active) await scene.setBackground('assets/terrain-local/' + t.active);
+    await scene.applyTerrain({ active: t?.active ?? null, offset: t?.offsets?.[t?.active] ?? 0 });
   }
 } catch {}
 const manager = createManager(scene, DEFAULT_CONFIG);
@@ -23,6 +23,7 @@ const manager = createManager(scene, DEFAULT_CONFIG);
 connectWS({
   onEvent: (event) => {
     if (event.type === 'config') { manager.configure(event); return; }
+    if (event.type === 'terrain') { scene.applyTerrain(event); return; }
     manager.handle(event);
   },
   onStatus: (s) => {
