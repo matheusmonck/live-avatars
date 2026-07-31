@@ -21,8 +21,10 @@ function decodePng(dataUrl) {
 export function listSprites({ overlayDir } = {}) {
   const base = overlayBase(overlayDir);
   const def = readJson(join(base, 'characters.json'))?.characters ?? [];
-  const loc = readJson(join(base, 'characters.local.json'))?.characters ?? [];
-  const entry = (e, source) => ({ id: e.id, frames: e.frames ?? DEFAULTS.frames, scale: e.scale ?? DEFAULTS.scale, facing: e.facing ?? DEFAULTS.facing, source });
+  const localData = readJson(join(base, 'characters.local.json')) ?? {};
+  const loc = localData.characters ?? [];
+  const hidden = new Set(localData.hidden ?? []);
+  const entry = (e, source) => ({ id: e.id, frames: e.frames ?? DEFAULTS.frames, scale: e.scale ?? DEFAULTS.scale, facing: e.facing ?? DEFAULTS.facing, source, hidden: hidden.has(e.id) });
   const byId = new Map();
   for (const e of def) byId.set(e.id, entry(e, 'default'));
   for (const e of loc) byId.set(e.id, entry(e, 'local'));
@@ -47,12 +49,23 @@ export function saveSprite({ id, scale, facing, frames } = {}, { overlayDir } = 
   return e;
 }
 
+export function setSpriteHidden(id, hidden, { overlayDir } = {}) {
+  const base = overlayBase(overlayDir);
+  const localPath = join(base, 'characters.local.json');
+  const data = readJson(localPath) ?? { characters: [] };
+  const set = new Set(data.hidden ?? []);
+  if (hidden) set.add(id); else set.delete(id);
+  data.hidden = [...set];
+  writeFileSync(localPath, JSON.stringify(data, null, 2) + '\n', 'utf8');
+}
+
 export function deleteSprite(id, { overlayDir } = {}) {
   const base = overlayBase(overlayDir);
   const localPath = join(base, 'characters.local.json');
   const data = readJson(localPath) ?? { characters: [] };
   if (!(data.characters ?? []).some((c) => c.id === id)) throw new Error('sprite padrão não pode ser removido');
   data.characters = data.characters.filter((c) => c.id !== id);
+  data.hidden = (data.hidden ?? []).filter((h) => h !== id);
   writeFileSync(localPath, JSON.stringify(data, null, 2) + '\n', 'utf8');
   rmSync(join(base, 'assets/characters-local', id), { recursive: true, force: true });
 }
