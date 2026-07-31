@@ -4,11 +4,20 @@ const ANIM_SPEED = 0.06;          // troca de quadro por ms de ticker
 const DEFAULTS = { frames: 2, scale: 2, facing: 'front' };
 
 // Seleção determinística (djb2) — pura e testável, sem PIXI/fetch.
-export function pickId(username, ids) {
+export function pickId(username, ids, overrides = {}) {
+  const forced = overrides[username];
+  if (forced && ids.includes(forced)) return forced;
   let h = 5381;
   for (let i = 0; i < username.length; i++)
     h = ((h << 5) + h + username.charCodeAt(i)) >>> 0;
   return ids[h % ids.length];
+}
+
+// Remove ids ocultos do roster; nunca deixa vazio (trava de segurança).
+export function visibleRoster(entries, hiddenIds) {
+  const hidden = new Set(hiddenIds ?? []);
+  const visible = entries.filter((e) => !hidden.has(e.id));
+  return visible.length ? visible : entries;
 }
 
 // Aplica defaults a uma entrada bruta do roster e fixa a pasta base.
@@ -27,29 +36,32 @@ function urlsFor(entry) {
 }
 
 let roster = [];                  // entradas resolvidas, populado no load
+let overrides = {};               // mapa usuario -> spriteId (characters.json + local)
 const cache = new Map();          // id -> [Texture, ...]
 
-async function fetchRoster(url, base) {
+async function fetchJson(url) {
   try {
     const res = await fetch(url);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data?.characters ?? []).map((e) => resolveEntry(e, base));
+    if (!res.ok) return null;
+    return await res.json();
   } catch {
-    return [];
+    return null;
   }
 }
 
 // Pré-carrega todas as texturas (chamar 1x antes de criar avatares).
 export async function loadCharacters() {
-  const defaults = await fetchRoster('characters.json', 'assets/characters');
+  const defData = (await fetchJson('characters.json')) ?? {};
+  const locData = (await fetchJson('characters.local.json')) ?? {};
+  const defaults = (defData.characters ?? []).map((e) => resolveEntry(e, 'assets/characters'));
   if (!defaults.length) throw new Error('characters.json ausente ou vazio');
-  const locals = await fetchRoster('characters.local.json', 'assets/characters-local');
+  const locals = (locData.characters ?? []).map((e) => resolveEntry(e, 'assets/characters-local'));
+  overrides = { ...(defData.overrides ?? {}), ...(locData.overrides ?? {}) };
 
   const byId = new Map();
   for (const e of defaults) byId.set(e.id, e);
   for (const e of locals) byId.set(e.id, e); // id local vence colisão
-  roster = [...byId.values()];
+  roster = visibleRoster([...byId.values()], locData.hidden);
 
   const all = roster.flatMap(urlsFor);
   const map = await PIXI.Assets.load(all);
@@ -62,7 +74,7 @@ export async function loadCharacters() {
 
 // Personagem fixo por usuário (hash estável sobre o roster carregado).
 export function characterForUser(username) {
-  return pickId(username, roster.map((e) => e.id));
+  return pickId(username, roster.map((e) => e.id), overrides);
 }
 
 // Cria o AnimatedSprite do personagem do usuário (texturas já pré-carregadas).
