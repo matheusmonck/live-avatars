@@ -8,6 +8,8 @@ export function createManager(scene, cfg) {
     limit: cfg.avatarLimit,
     inactivityMs: cfg.inactivitySeconds * 1000,
   });
+  // cfg.stageMode sempre chega booleano (DEFAULT_CONFIG ou validateConfig); o
+  // `!== false` só faz omitir a chave também cair no padrão ligado.
   const settings = { stageMode: cfg.stageMode !== false };
   const throttle = createThrottle(1500);
   const THROTTLED_TYPES = new Set(['like', 'follow', 'share']);
