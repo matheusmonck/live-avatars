@@ -23,6 +23,7 @@ const depsBase = () => ({
   saveTerrain: vi.fn(() => ({ file: 'grama.png' })),
   setActiveTerrain: vi.fn(),
   deleteTerrain: vi.fn(),
+  setTerrainOffset: vi.fn(),
 });
 
 test('GET /admin/api/config devolve config sem a chave, com hasKey', async () => {
@@ -141,5 +142,22 @@ test('DELETE /admin/api/terrain/:file', async () => {
     const r = await fetch(`${base}/admin/api/terrain/grama.png`, { method: 'DELETE' });
     expect(r.status).toBe(200);
     expect(deps.deleteTerrain).toHaveBeenCalledWith('grama.png');
+  });
+});
+test('PUT /admin/api/terrain/offset chama setTerrainOffset e faz broadcast terrain', async () => {
+  const deps = depsBase();
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/terrain/offset`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: 'grama.png', offset: -30 }) });
+    expect(r.status).toBe(200);
+    expect(deps.setTerrainOffset).toHaveBeenCalledWith('grama.png', -30);
+    expect(deps.bridge.broadcast).toHaveBeenCalledWith(expect.objectContaining({ type: 'terrain' }));
+  });
+});
+test('PUT /admin/api/terrain/active faz broadcast do frame terrain', async () => {
+  const deps = depsBase();
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/terrain/active`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active: 'grama.png' }) });
+    expect(r.status).toBe(200);
+    expect(deps.bridge.broadcast).toHaveBeenCalledWith(expect.objectContaining({ type: 'terrain' }));
   });
 });

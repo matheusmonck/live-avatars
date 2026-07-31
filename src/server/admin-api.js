@@ -1,6 +1,6 @@
 import { loadConfig as loadConfigReal, saveConfig as saveConfigReal, saveKey as saveKeyReal } from './config.js';
 import { listSprites as listSpritesReal, saveSprite as saveSpriteReal, deleteSprite as deleteSpriteReal } from './sprites.js';
-import { listTerrains as listTerrainsReal, saveTerrain as saveTerrainReal, setActiveTerrain as setActiveTerrainReal, deleteTerrain as deleteTerrainReal } from './terrains.js';
+import { listTerrains as listTerrainsReal, saveTerrain as saveTerrainReal, setActiveTerrain as setActiveTerrainReal, deleteTerrain as deleteTerrainReal, setTerrainOffset as setTerrainOffsetReal } from './terrains.js';
 
 // Handler das rotas /admin/api/*. Deps injetáveis para teste.
 export function createAdminApi({
@@ -16,6 +16,7 @@ export function createAdminApi({
   saveTerrain = saveTerrainReal,
   setActiveTerrain = setActiveTerrainReal,
   deleteTerrain = deleteTerrainReal,
+  setTerrainOffset = setTerrainOffsetReal,
 } = {}) {
   function readBody(req) {
     return new Promise((resolve) => {
@@ -81,8 +82,23 @@ export function createAdminApi({
     }
     if (path === '/admin/api/terrain/active' && req.method === 'PUT') {
       const body = await readBody(req);
-      try { setActiveTerrain(body.active ?? null); return json(res, 200, { ok: true }); }
-      catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+      try {
+        setActiveTerrain(body.active ?? null);
+        const { active, items } = listTerrains();
+        const offset = items.find((i) => i.file === active)?.offset ?? 0;
+        bridge.broadcast({ type: 'terrain', active, offset });
+        return json(res, 200, { ok: true });
+      } catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+    }
+    if (path === '/admin/api/terrain/offset' && req.method === 'PUT') {
+      const body = await readBody(req);
+      try {
+        setTerrainOffset(body.file, body.offset);
+        const { active, items } = listTerrains();
+        const offset = items.find((i) => i.file === active)?.offset ?? 0;
+        bridge.broadcast({ type: 'terrain', active, offset });
+        return json(res, 200, { ok: true });
+      } catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     if (path.startsWith('/admin/api/terrain/') && req.method === 'DELETE') {
       const file = decodeURIComponent(path.slice('/admin/api/terrain/'.length));
