@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { getSprites, saveSprite, deleteSprite, setSpriteHidden, type SpriteItem } from '../api';
+import { getSprites, saveSprite, deleteSprite, setSpriteHidden, setSpriteScale, type SpriteItem } from '../api';
 import { Card } from '../ui/Card';
 import { Field } from '../ui/Field';
 import { Button } from '../ui/Button';
@@ -27,6 +27,11 @@ export function SpritesTab() {
   };
   const remove = async (sid: string) => { if (confirm(`Remover o sprite "${sid}"?`)) { await deleteSprite(sid); load(); } };
   const toggleHidden = async (s: SpriteItem) => { await setSpriteHidden(s.id, !s.hidden); load(); };
+  const changeScale = async (id: string, scale: number) => {
+    const r = await setSpriteScale(id, scale);
+    setMsg(r?.error ? r.error : 'Escala salva ✓ (atualize a fonte no OBS)');
+    load();
+  };
   const hasLocal = sprites.some((s) => s.source === 'local');
   return (
     <Card title="Sprites de personagem">
@@ -35,9 +40,14 @@ export function SpritesTab() {
           <li key={s.id} className="row" style={s.hidden ? { opacity: 0.5 } : undefined}>
             <Preview base={baseFor(s)} id={s.id} frames={s.frames} />
             <span>{s.id} <small className="muted">({s.source === 'local' ? 'seu' : 'padrão'}{s.hidden ? ', oculto' : ''})</small></span>
-            {s.source === 'local'
-              ? <Button variant="danger" onClick={() => remove(s.id)}>Remover</Button>
-              : <Button onClick={() => toggleHidden(s)}>{s.hidden ? 'Restaurar' : 'Ocultar'}</Button>}
+            {s.source === 'local' ? (
+              <>
+                <input type="number" min={1} max={6} step={0.5} defaultValue={s.scale} className="input" style={{ width: 64 }} title="escala" onBlur={(e) => changeScale(s.id, Number(e.target.value))} />
+                <Button variant="danger" onClick={() => remove(s.id)}>Remover</Button>
+              </>
+            ) : (
+              <Button onClick={() => toggleHidden(s)}>{s.hidden ? 'Restaurar' : 'Ocultar'}</Button>
+            )}
           </li>
         ))}
       </ul>

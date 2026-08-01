@@ -19,6 +19,7 @@ export const getSprites = (): Promise<SpriteItem[]> => fetch('/admin/api/sprites
 export const saveSprite = (s: { id: string; scale: number; facing: string; frames: string[] }): Promise<ApiResult> => fetch('/admin/api/sprites', jsonReq('POST', s)).then(asJson);
 export const deleteSprite = (id: string): Promise<ApiResult> => fetch(`/admin/api/sprites/${encodeURIComponent(id)}`, { method: 'DELETE' }).then(asJson);
 export const setSpriteHidden = (id: string, hidden: boolean): Promise<ApiResult> => fetch('/admin/api/sprites/hidden', jsonReq('PUT', { id, hidden })).then(asJson);
+export const setSpriteScale = (id: string, scale: number): Promise<ApiResult> => fetch('/admin/api/sprites/scale', jsonReq('PUT', { id, scale })).then(asJson);
 export const getTerrain = (): Promise<TerrainState> => fetch('/admin/api/terrain').then(asJson);
 export const saveTerrain = (t: { name: string; image: string }): Promise<ApiResult> => fetch('/admin/api/terrain', jsonReq('POST', t)).then(asJson);
 export const setActiveTerrain = (active: string | null): Promise<ApiResult> => fetch('/admin/api/terrain/active', jsonReq('PUT', { active })).then(asJson);
