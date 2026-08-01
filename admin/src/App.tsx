@@ -6,8 +6,9 @@ import { ConnectionTab } from './tabs/ConnectionTab';
 import { ConfigTab } from './tabs/ConfigTab';
 import { SpritesTab } from './tabs/SpritesTab';
 import { TerrainTab } from './tabs/TerrainTab';
+import { UsersTab } from './tabs/UsersTab';
 
-const TABS = ['Conexão', 'Configuração', 'Sprites', 'Terreno'];
+const TABS = ['Conexão', 'Configuração', 'Sprites', 'Usuários', 'Terreno'];
 
 export function App() {
   const status = useStatus();
@@ -20,6 +21,7 @@ export function App() {
         {tab === 'Conexão' && <ConnectionTab status={status} />}
         {tab === 'Configuração' && <ConfigTab />}
         {tab === 'Sprites' && <SpritesTab />}
+        {tab === 'Usuários' && <UsersTab />}
         {tab === 'Terreno' && <TerrainTab />}
       </main>
     </div>

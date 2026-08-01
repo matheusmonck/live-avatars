@@ -25,6 +25,11 @@ export const setActiveTerrain = (active: string | null): Promise<ApiResult> => f
 export const deleteTerrain = (file: string): Promise<ApiResult> => fetch(`/admin/api/terrain/${encodeURIComponent(file)}`, { method: 'DELETE' }).then(asJson);
 export const setTerrainOffset = (file: string, offset: number): Promise<ApiResult> => fetch('/admin/api/terrain/offset', jsonReq('PUT', { file, offset })).then(asJson);
 
+export interface UserEntry { username: string; sprite: string | null; source: 'default' | 'local'; vip: boolean }
+export const getUsers = (): Promise<UserEntry[]> => fetch('/admin/api/users').then(asJson);
+export const putUser = (u: { username: string; sprite: string | null; vip: boolean }): Promise<ApiResult> => fetch('/admin/api/users', jsonReq('PUT', u)).then(asJson);
+export const deleteUser = (username: string): Promise<ApiResult> => fetch(`/admin/api/users/${encodeURIComponent(username)}`, { method: 'DELETE' }).then(asJson);
+
 export function subscribeStatus(cb: (s: Status) => void): () => void {
   const ws = new WebSocket(`ws://${location.host}`);
   ws.onmessage = (e: MessageEvent) => { try { const f = JSON.parse(e.data); if (f?.type === 'status') cb(f as Status); } catch { /* ignore */ } };
