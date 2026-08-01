@@ -7,10 +7,16 @@ const DEFAULTS = { frames: 2, scale: 2, facing: 'front' };
 export function pickId(username, ids, overrides = {}) {
   const forced = overrides[username];
   if (forced && ids.includes(forced)) return forced;
+  // Sprites reservados por override (ex.: luffy do matheusmonck) não entram no
+  // sorteio dos demais — senão outros viewers "virariam" o mesmo personagem.
+  // Trava: se sobrar vazio (tudo reservado), volta ao roster completo.
+  const reserved = new Set(Object.values(overrides));
+  const pool = ids.filter((id) => !reserved.has(id));
+  const usable = pool.length ? pool : ids;
   let h = 5381;
   for (let i = 0; i < username.length; i++)
     h = ((h << 5) + h + username.charCodeAt(i)) >>> 0;
-  return ids[h % ids.length];
+  return usable[h % usable.length];
 }
 
 // Remove ids ocultos do roster; nunca deixa vazio (trava de segurança).

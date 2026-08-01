@@ -33,6 +33,16 @@ test('pickId ignora override quando o alvo não está no roster (cai no hash)', 
   expect(pickId('matheusmonck', ids, { matheusmonck: 'luffy' })).toBe(pickId('matheusmonck', ids));
   expect(ids).toContain(pickId('matheusmonck', ids, { matheusmonck: 'luffy' }));
 });
+test('sprite reservado por override é exclusivo: outros usuários nunca o recebem', () => {
+  const ids = ['frog', 'girl', 'hood', 'kid', 'miner', 'oldwoman', 'sage', 'woman', 'luffy'];
+  const overrides = { matheusmonck: 'luffy' };
+  // ana.costa e dan caíam em luffy pelo hash antes da correção (bug: "mais de um Luffy").
+  for (const u of ['ana.costa', 'dan', 'joao.p', 'bruninho', 'carla_m', 'fefa', 'gustavo_tk', 'isa']) {
+    expect(pickId(u, ids, overrides)).not.toBe('luffy');
+  }
+  // ...mas o dono do override continua recebendo o sprite reservado.
+  expect(pickId('matheusmonck', ids, overrides)).toBe('luffy');
+});
 test('visibleRoster remove ocultos', () => {
   const entries = [{ id: 'hero' }, { id: 'dog' }, { id: 'cap' }];
   expect(visibleRoster(entries, ['dog']).map((e) => e.id)).toEqual(['hero', 'cap']);
