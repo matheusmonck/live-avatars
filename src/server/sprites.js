@@ -59,6 +59,18 @@ export function setSpriteHidden(id, hidden, { overlayDir } = {}) {
   writeFileSync(localPath, JSON.stringify(data, null, 2) + '\n', 'utf8');
 }
 
+export function setSpriteScale(id, scale, { overlayDir } = {}) {
+  const base = overlayBase(overlayDir);
+  const localPath = join(base, 'characters.local.json');
+  const data = readJson(localPath) ?? { characters: [] };
+  const entry = (data.characters ?? []).find((c) => c.id === id);
+  if (!entry) throw new Error('sprite local não encontrado');
+  const s = Number(scale);
+  if (!Number.isFinite(s) || s <= 0) throw new Error('escala inválida');
+  if (s === DEFAULTS.scale) delete entry.scale; else entry.scale = s;
+  writeFileSync(localPath, JSON.stringify(data, null, 2) + '\n', 'utf8');
+}
+
 export function deleteSprite(id, { overlayDir } = {}) {
   const base = overlayBase(overlayDir);
   const localPath = join(base, 'characters.local.json');

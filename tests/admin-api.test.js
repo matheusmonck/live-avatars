@@ -20,6 +20,7 @@ const depsBase = () => ({
   saveSprite: vi.fn(),
   deleteSprite: vi.fn(),
   setSpriteHidden: vi.fn(),
+  setSpriteScale: vi.fn(),
   listTerrains: () => ({ active: null, items: [] }),
   saveTerrain: vi.fn(() => ({ file: 'grama.png' })),
   setActiveTerrain: vi.fn(),
@@ -169,6 +170,26 @@ test('PUT /admin/api/sprites/hidden chama setSpriteHidden', async () => {
     const r = await fetch(`${base}/admin/api/sprites/hidden`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: 'hero', hidden: true }) });
     expect(r.status).toBe(200);
     expect(deps.setSpriteHidden).toHaveBeenCalledWith('hero', true);
+  });
+});
+
+test('PUT /admin/api/sprites/scale chama setSpriteScale e devolve 200', async () => {
+  const deps = depsBase();
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/sprites/scale`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: 'hero', scale: 4 }) });
+    expect(r.status).toBe(200);
+    expect(deps.setSpriteScale).toHaveBeenCalledWith('hero', 4);
+  });
+});
+
+test('PUT /admin/api/sprites/scale com erro devolve 400', async () => {
+  const deps = depsBase();
+  deps.setSpriteScale = vi.fn(() => { throw new Error('sprite local não encontrado'); });
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/sprites/scale`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: 'inexistente', scale: 3 }) });
+    expect(r.status).toBe(400);
+    const j = await r.json();
+    expect(j.error).toMatch(/sprite local não encontrado/);
   });
 });
 

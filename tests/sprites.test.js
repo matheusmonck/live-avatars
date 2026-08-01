@@ -2,7 +2,7 @@ import { test, expect } from 'vitest';
 import { mkdtempSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { listSprites, saveSprite, deleteSprite, setSpriteHidden } from '../src/server/sprites.js';
+import { listSprites, saveSprite, deleteSprite, setSpriteHidden, setSpriteScale } from '../src/server/sprites.js';
 
 function overlayTmp() {
   const dir = mkdtempSync(join(tmpdir(), 'ov-'));
@@ -56,4 +56,33 @@ test('deleteSprite remove só local; recusa padrão', () => {
   deleteSprite('novo', { overlayDir: dir });
   expect(existsSync(join(dir, 'assets/characters-local/novo'))).toBe(false);
   expect(() => deleteSprite('hero', { overlayDir: dir })).toThrow();
+});
+
+test('setSpriteScale atualiza scale de sprite local', () => {
+  const dir = overlayTmp();
+  saveSprite({ id: 'x', scale: 2, facing: 'front', frames: [PNG] }, { overlayDir: dir });
+  setSpriteScale('x', 4, { overlayDir: dir });
+  const local = JSON.parse(readFileSync(join(dir, 'characters.local.json'), 'utf8'));
+  const entry = local.characters.find((c) => c.id === 'x');
+  expect(entry.scale).toBe(4);
+});
+
+test('setSpriteScale remove o campo scale quando igual ao default (2)', () => {
+  const dir = overlayTmp();
+  saveSprite({ id: 'x', scale: 4, facing: 'front', frames: [PNG] }, { overlayDir: dir });
+  setSpriteScale('x', 2, { overlayDir: dir });
+  const local = JSON.parse(readFileSync(join(dir, 'characters.local.json'), 'utf8'));
+  const entry = local.characters.find((c) => c.id === 'x');
+  expect(entry.scale).toBeUndefined();
+});
+
+test('setSpriteScale lança erro para sprite inexistente', () => {
+  const dir = overlayTmp();
+  expect(() => setSpriteScale('inexistente', 3, { overlayDir: dir })).toThrow('sprite local não encontrado');
+});
+
+test('setSpriteScale lança erro para scale inválida (0)', () => {
+  const dir = overlayTmp();
+  saveSprite({ id: 'x', frames: [PNG] }, { overlayDir: dir });
+  expect(() => setSpriteScale('x', 0, { overlayDir: dir })).toThrow('escala inválida');
 });

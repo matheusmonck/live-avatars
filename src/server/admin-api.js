@@ -1,5 +1,5 @@
 import { loadConfig as loadConfigReal, saveConfig as saveConfigReal, saveKey as saveKeyReal } from './config.js';
-import { listSprites as listSpritesReal, saveSprite as saveSpriteReal, deleteSprite as deleteSpriteReal, setSpriteHidden as setSpriteHiddenReal } from './sprites.js';
+import { listSprites as listSpritesReal, saveSprite as saveSpriteReal, deleteSprite as deleteSpriteReal, setSpriteHidden as setSpriteHiddenReal, setSpriteScale as setSpriteScaleReal } from './sprites.js';
 import { listTerrains as listTerrainsReal, saveTerrain as saveTerrainReal, setActiveTerrain as setActiveTerrainReal, deleteTerrain as deleteTerrainReal, setTerrainOffset as setTerrainOffsetReal } from './terrains.js';
 import { listUsers as listUsersReal, setUser as setUserReal, removeUser as removeUserReal } from './users.js';
 
@@ -14,6 +14,7 @@ export function createAdminApi({
   saveSprite = saveSpriteReal,
   deleteSprite = deleteSpriteReal,
   setSpriteHidden = setSpriteHiddenReal,
+  setSpriteScale = setSpriteScaleReal,
   listTerrains = listTerrainsReal,
   saveTerrain = saveTerrainReal,
   setActiveTerrain = setActiveTerrainReal,
@@ -75,6 +76,11 @@ export function createAdminApi({
     if (path === '/admin/api/sprites/hidden' && req.method === 'PUT') {
       const body = await readBody(req);
       try { setSpriteHidden(body.id, body.hidden); return json(res, 200, { ok: true }); }
+      catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+    }
+    if (path === '/admin/api/sprites/scale' && req.method === 'PUT') {
+      const body = await readBody(req);
+      try { setSpriteScale(body.id, body.scale); return json(res, 200, { ok: true }); }
       catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     if (path.startsWith('/admin/api/sprites/') && req.method === 'DELETE') {
