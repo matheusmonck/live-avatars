@@ -171,3 +171,55 @@ test('PUT /admin/api/sprites/hidden chama setSpriteHidden', async () => {
     expect(deps.setSpriteHidden).toHaveBeenCalledWith('hero', true);
   });
 });
+
+test('GET /admin/api/users lista usuários', async () => {
+  const deps = depsBase();
+  deps.listUsers = () => [{ username: 'ana', sprite: 'luffy', source: 'local', vip: false }];
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/users`);
+    expect(r.status).toBe(200);
+    const j = await r.json();
+    expect(j[0]).toMatchObject({ username: 'ana', sprite: 'luffy' });
+  });
+});
+
+test('PUT /admin/api/users chama setUser', async () => {
+  const deps = depsBase();
+  deps.setUser = vi.fn();
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/users`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'ana', sprite: 'luffy' }) });
+    expect(r.status).toBe(200);
+    expect(deps.setUser).toHaveBeenCalledWith({ username: 'ana', sprite: 'luffy' });
+  });
+});
+
+test('PUT /admin/api/users com erro devolve 400', async () => {
+  const deps = depsBase();
+  deps.setUser = vi.fn(() => { throw new Error('sprite inexistente'); });
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/users`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'ana', sprite: 'invalid' }) });
+    expect(r.status).toBe(400);
+    const j = await r.json();
+    expect(j.error).toMatch(/sprite inexistente/);
+  });
+});
+
+test('DELETE /admin/api/users/:username chama removeUser', async () => {
+  const deps = depsBase();
+  deps.removeUser = vi.fn();
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/users/ana`, { method: 'DELETE' });
+    expect(r.status).toBe(200);
+    expect(deps.removeUser).toHaveBeenCalledWith('ana');
+  });
+});
+
+test('DELETE /admin/api/users/:username decodifica username com caracteres especiais', async () => {
+  const deps = depsBase();
+  deps.removeUser = vi.fn();
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/users/jo%C3%A3o`, { method: 'DELETE' });
+    expect(r.status).toBe(200);
+    expect(deps.removeUser).toHaveBeenCalledWith('joão');
+  });
+});

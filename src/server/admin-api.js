@@ -1,6 +1,7 @@
 import { loadConfig as loadConfigReal, saveConfig as saveConfigReal, saveKey as saveKeyReal } from './config.js';
 import { listSprites as listSpritesReal, saveSprite as saveSpriteReal, deleteSprite as deleteSpriteReal, setSpriteHidden as setSpriteHiddenReal } from './sprites.js';
 import { listTerrains as listTerrainsReal, saveTerrain as saveTerrainReal, setActiveTerrain as setActiveTerrainReal, deleteTerrain as deleteTerrainReal, setTerrainOffset as setTerrainOffsetReal } from './terrains.js';
+import { listUsers as listUsersReal, setUser as setUserReal, removeUser as removeUserReal } from './users.js';
 
 // Handler das rotas /admin/api/*. Deps injetáveis para teste.
 export function createAdminApi({
@@ -18,6 +19,9 @@ export function createAdminApi({
   setActiveTerrain = setActiveTerrainReal,
   deleteTerrain = deleteTerrainReal,
   setTerrainOffset = setTerrainOffsetReal,
+  listUsers = listUsersReal,
+  setUser = setUserReal,
+  removeUser = removeUserReal,
 } = {}) {
   function readBody(req) {
     return new Promise((resolve) => {
@@ -76,6 +80,19 @@ export function createAdminApi({
     if (path.startsWith('/admin/api/sprites/') && req.method === 'DELETE') {
       const id = decodeURIComponent(path.slice('/admin/api/sprites/'.length));
       try { deleteSprite(id); return json(res, 200, { ok: true }); }
+      catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+    }
+    if (path === '/admin/api/users' && req.method === 'GET') {
+      return json(res, 200, listUsers());
+    }
+    if (path === '/admin/api/users' && req.method === 'PUT') {
+      const body = await readBody(req);
+      try { setUser(body); return json(res, 200, { ok: true }); }
+      catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+    }
+    if (path.startsWith('/admin/api/users/') && req.method === 'DELETE') {
+      const username = decodeURIComponent(path.slice('/admin/api/users/'.length));
+      try { removeUser(username); return json(res, 200, { ok: true }); }
       catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     if (path === '/admin/api/terrain' && req.method === 'GET') {
