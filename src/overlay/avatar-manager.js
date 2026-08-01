@@ -11,12 +11,18 @@ export function createManager(scene, cfg) {
   });
   // cfg.stageMode sempre chega booleano (DEFAULT_CONFIG ou validateConfig); o
   // `!== false` só faz omitir a chave também cair no padrão ligado.
-  const settings = { stageMode: cfg.stageMode !== false };
+  const settings = {
+    stageMode: cfg.stageMode !== false,
+    onlyInteractors: cfg.onlyInteractors !== false,
+    likeThreshold: Number.isFinite(cfg.likeThreshold) ? cfg.likeThreshold : 10,
+  };
   const throttle = createThrottle(1500);
   const THROTTLED_TYPES = new Set(['like', 'follow', 'share']);
   const visuals = new Map(); // usuario -> avatarVisual
+  const likeCounts = new Map(); // username -> soma de corações (pro limiar de aparição)
 
-  function ensure(event) {
+  function ensure(event, canSpawn) {
+    if (!canSpawn && !registry.has(event.username)) return null;
     const result = registry.register(event.username, Date.now());
     for (const u of result.removed) removeVisual(u);
     if (result.isNew) {
@@ -32,16 +38,24 @@ export function createManager(scene, cfg) {
   }
 
   function ensureVips() {
-    for (const u of vipUsers()) ensure({ type: 'vip', username: u });
+    for (const u of vipUsers()) ensure({ type: 'vip', username: u }, true);
+  }
+
+  function shouldSpawn(event) {
+    if (!settings.onlyInteractors) return true;
+    if (event.type === 'comment' || event.type === 'gift') return true;
+    if (event.type === 'like') return (likeCounts.get(event.username) ?? 0) >= settings.likeThreshold;
+    return false; // join/follow/share não criam avatar
   }
 
   function handle(event) {
-    if (THROTTLED_TYPES.has(event.type) && !throttle.allow(event.type + ':' + event.username)) return;
-    const v = ensure(event);
+    if (event.type === 'like') likeCounts.set(event.username, (likeCounts.get(event.username) ?? 0) + (Number(event.count) || 1));
+    const v = ensure(event, shouldSpawn(event));
     if (!v) return;
+    if (THROTTLED_TYPES.has(event.type) && !throttle.allow(event.type + ':' + event.username)) return;
     switch (event.type) {
       case 'comment': v.jump(); break;
-      case 'join': break; // já entrou andando ao ser criado
+      case 'join': break;
       case 'like': R.reactionHearts(scene, v); break;
       case 'follow': R.reactionFollow(scene, v, event.name || event.username, { stage: settings.stageMode }); break;
       case 'share': R.reactionStars(scene, v); break;
@@ -69,6 +83,8 @@ export function createManager(scene, cfg) {
       inactivityMs: newCfg.inactivitySeconds * 1000,
     });
     if (typeof newCfg.stageMode === 'boolean') settings.stageMode = newCfg.stageMode;
+    if (typeof newCfg.onlyInteractors === 'boolean') settings.onlyInteractors = newCfg.onlyInteractors;
+    if (Number.isFinite(newCfg.likeThreshold)) settings.likeThreshold = newCfg.likeThreshold;
   }
 
   return { handle, configure };
