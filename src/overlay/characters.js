@@ -43,6 +43,7 @@ function urlsFor(entry) {
 
 let roster = [];                  // entradas resolvidas, populado no load
 let overrides = {};               // mapa usuario -> spriteId (characters.json + local)
+let vipSet = new Set();           // usernames VIP (characters.local.json vip:[...])
 const cache = new Map();          // id -> [Texture, ...]
 
 async function fetchJson(url) {
@@ -63,6 +64,7 @@ export async function loadCharacters() {
   if (!defaults.length) throw new Error('characters.json ausente ou vazio');
   const locals = (locData.characters ?? []).map((e) => resolveEntry(e, 'assets/characters-local'));
   overrides = { ...(defData.overrides ?? {}), ...(locData.overrides ?? {}) };
+  vipSet = new Set(locData.vip ?? []);
 
   const byId = new Map();
   for (const e of defaults) byId.set(e.id, e);
@@ -77,6 +79,9 @@ export async function loadCharacters() {
   }
   for (const e of roster) cache.set(e.id, urlsFor(e).map((u) => map[u]));
 }
+
+export function isVip(username) { return vipSet.has(username); }
+export function vipUsers() { return [...vipSet]; }
 
 // Personagem fixo por usuário (hash estável sobre o roster carregado).
 export function characterForUser(username) {

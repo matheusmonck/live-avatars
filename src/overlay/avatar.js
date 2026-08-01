@@ -1,4 +1,4 @@
-import { createCharacterSprite } from './characters.js';
+import { createCharacterSprite, isVip } from './characters.js';
 
 // Representa um avatar na tela: corpo + label @, com passeio pelo chão.
 export function createAvatarVisual({ username }, scene) {
@@ -13,6 +13,13 @@ export function createAvatarVisual({ username }, scene) {
   label.anchor.set(0.5, 0);
   label.y = 6;
   root.addChild(label);
+
+  if (isVip(username)) {
+    const crown = new PIXI.Text({ text: '👑', style: { fontFamily: 'system-ui', fontSize: 14 } });
+    crown.anchor.set(0.5, 1);
+    crown.y = -body.height - 2; // acima da cabeça
+    root.addChild(crown);
+  }
 
   // Entra caminhando por uma das bordas em direção ao centro.
   const screenWidth = scene.app.screen.width;

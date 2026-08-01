@@ -2,6 +2,7 @@ import { createRegistry } from './avatar-registry.js';
 import { createThrottle } from './throttle.js';
 import { createAvatarVisual } from './avatar.js';
 import * as R from './reactions.js';
+import { vipUsers } from './characters.js';
 
 export function createManager(scene, cfg) {
   const registry = createRegistry({
@@ -30,6 +31,10 @@ export function createManager(scene, cfg) {
     if (v) { visuals.delete(usuario); v.leave(); }
   }
 
+  function ensureVips() {
+    for (const u of vipUsers()) ensure({ type: 'vip', username: u });
+  }
+
   function handle(event) {
     if (THROTTLED_TYPES.has(event.type) && !throttle.allow(event.type + ':' + event.username)) return;
     const v = ensure(event);
@@ -44,6 +49,9 @@ export function createManager(scene, cfg) {
     }
   }
 
+  // Spawn inicial dos VIPs.
+  ensureVips();
+
   // Andar contínuo de todos os avatares.
   scene.app.ticker.add((ticker) => {
     for (const v of visuals.values()) v.walk(ticker.deltaMS);
@@ -51,6 +59,7 @@ export function createManager(scene, cfg) {
 
   // Expiração por inatividade a cada 5s.
   setInterval(() => {
+    ensureVips();
     for (const u of registry.expireInactive(Date.now())) removeVisual(u);
   }, 5000);
 
