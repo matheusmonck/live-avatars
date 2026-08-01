@@ -67,3 +67,31 @@ test('saveConfig persiste modoPalco: false no JSON', () => {
   const gravado = JSON.parse(readFileSync(path, 'utf8'));
   expect(gravado.modoPalco).toBe(false);
 });
+
+test('DEFAULT_CONFIG tem onlyInteractors true e likeThreshold 10', () => {
+  expect(DEFAULT_CONFIG.onlyInteractors).toBe(true);
+  expect(DEFAULT_CONFIG.likeThreshold).toBe(10);
+});
+
+test('validateConfig lê soQuemInterage e coracoesParaAparecer', () => {
+  const cfg = validateConfig({ soQuemInterage: false, coracoesParaAparecer: 25 });
+  expect(cfg.onlyInteractors).toBe(false);
+  expect(cfg.likeThreshold).toBe(25);
+});
+
+test('validateConfig clampeia coracoesParaAparecer (max 1000, min 1)', () => {
+  expect(validateConfig({ coracoesParaAparecer: 9999 }).likeThreshold).toBe(1000);
+  expect(validateConfig({ coracoesParaAparecer: 0 }).likeThreshold).toBe(1);
+});
+
+test('validateConfig usa defaults quando campos estão ausentes', () => {
+  const cfg = validateConfig({});
+  expect(cfg.onlyInteractors).toBe(true);
+  expect(cfg.likeThreshold).toBe(10);
+});
+
+test('toRawConfig inclui soQuemInterage e coracoesParaAparecer', () => {
+  const raw = toRawConfig({ ...validateConfig({}) });
+  expect(raw).toHaveProperty('soQuemInterage');
+  expect(raw).toHaveProperty('coracoesParaAparecer');
+});

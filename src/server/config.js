@@ -9,6 +9,8 @@ export const DEFAULT_CONFIG = {
   effectsVolume: 0.6,
   stageMode: true,
   port: 8737,
+  onlyInteractors: true,
+  likeThreshold: 10,
 };
 
 function clamp(value, min, max, fallback) {
@@ -35,6 +37,8 @@ export function validateConfig(raw) {
     effectsVolume: clamp(raw.volumeEfeitos, 0, 1, DEFAULT_CONFIG.effectsVolume),
     stageMode: bool(raw.modoPalco, DEFAULT_CONFIG.stageMode),
     port: Math.round(clamp(raw.porta, 1024, 65535, DEFAULT_CONFIG.port)),
+    onlyInteractors: bool(raw.soQuemInterage, DEFAULT_CONFIG.onlyInteractors),
+    likeThreshold: Math.round(clamp(raw.coracoesParaAparecer, 1, 1000, DEFAULT_CONFIG.likeThreshold)),
   };
 }
 
@@ -47,6 +51,8 @@ export function toRawConfig(en) {
     volumeEfeitos: en.effectsVolume,
     modoPalco: en.stageMode,
     porta: en.port,
+    soQuemInterage: en.onlyInteractors,
+    coracoesParaAparecer: en.likeThreshold,
   };
 }
 
