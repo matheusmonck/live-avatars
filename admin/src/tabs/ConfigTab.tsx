@@ -16,7 +16,7 @@ export function ConfigTab() {
   const check = (k: keyof Config) => (e: ChangeEvent<HTMLInputElement>) => setCfg({ ...cfg, [k]: e.target.checked });
   const salvar = async (e: FormEvent) => {
     e.preventDefault();
-    const r = await putConfig({ username: cfg.username, avatarLimit: cfg.avatarLimit, inactivitySeconds: cfg.inactivitySeconds, effectsVolume: cfg.effectsVolume, stageMode: cfg.stageMode, port: cfg.port });
+    const r = await putConfig({ username: cfg.username, avatarLimit: cfg.avatarLimit, inactivitySeconds: cfg.inactivitySeconds, effectsVolume: cfg.effectsVolume, stageMode: cfg.stageMode, onlyInteractors: cfg.onlyInteractors, likeThreshold: cfg.likeThreshold, port: cfg.port });
     setMsg(r?.error ? r.error : 'Salvo ✓');
   };
   const salvarChave = async () => {
@@ -32,6 +32,8 @@ export function ConfigTab() {
           <Field label="Inatividade (s)" type="number" min={10} max={3600} value={cfg.inactivitySeconds} onChange={num('inactivitySeconds')} />
           <Field label="Volume dos efeitos" type="number" min={0} max={1} step={0.1} value={cfg.effectsVolume} onChange={num('effectsVolume')} />
           <Field label="Modo palco (destaque de presente + banner)" type="checkbox" checked={cfg.stageMode} onChange={check('stageMode')} />
+          <Field label="Só quem interage (comentário, coração, presente)" type="checkbox" checked={cfg.onlyInteractors} onChange={check('onlyInteractors')} />
+          <Field label="Corações para aparecer" type="number" min={1} max={1000} value={cfg.likeThreshold} onChange={num('likeThreshold')} />
           <Field label="Porta" type="number" min={1024} max={65535} value={cfg.port} onChange={num('port')} />
           <div className="row"><Button variant="primary" type="submit">Salvar</Button> <span className="muted">{msg}</span></div>
         </form>

@@ -1,6 +1,6 @@
 export type ConnState = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'offline' | 'error';
 export interface Status { type?: 'status'; state: ConnState; username?: string; room?: string; reason?: string }
-export interface Config { username: string; avatarLimit: number; inactivitySeconds: number; effectsVolume: number; stageMode: boolean; port: number; hasKey: boolean }
+export interface Config { username: string; avatarLimit: number; inactivitySeconds: number; effectsVolume: number; stageMode: boolean; onlyInteractors: boolean; likeThreshold: number; port: number; hasKey: boolean }
 export interface SpriteItem { id: string; frames: number; scale: number; facing: string; source: 'default' | 'local'; hidden: boolean }
 export interface TerrainState { active: string | null; items: { file: string; offset: number }[] }
 export interface ApiResult { ok?: boolean; error?: string; [k: string]: unknown }
