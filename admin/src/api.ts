@@ -1,8 +1,8 @@
 export type ConnState = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'offline' | 'error';
 export interface Status { type?: 'status'; state: ConnState; username?: string; room?: string; reason?: string }
-export interface Config { username: string; avatarLimit: number; inactivitySeconds: number; effectsVolume: number; stageMode: boolean; onlyInteractors: boolean; likeThreshold: number; port: number; hasKey: boolean }
+export interface Config { username: string; avatarLimit: number; inactivitySeconds: number; effectsVolume: number; stageMode: boolean; onlyInteractors: boolean; likeThreshold: number; avatarScale: number; port: number; hasKey: boolean }
 export interface SpriteItem { id: string; frames: number; scale: number; facing: string; source: 'default' | 'local'; hidden: boolean }
-export interface TerrainState { active: string | null; items: { file: string; offset: number }[] }
+export interface TerrainState { active: string | null; items: { file: string; offset: number; scale: number }[] }
 export interface ApiResult { ok?: boolean; error?: string; [k: string]: unknown }
 
 const asJson = (r: Response) => r.json();
@@ -25,6 +25,7 @@ export const saveTerrain = (t: { name: string; image: string }): Promise<ApiResu
 export const setActiveTerrain = (active: string | null): Promise<ApiResult> => fetch('/admin/api/terrain/active', jsonReq('PUT', { active })).then(asJson);
 export const deleteTerrain = (file: string): Promise<ApiResult> => fetch(`/admin/api/terrain/${encodeURIComponent(file)}`, { method: 'DELETE' }).then(asJson);
 export const setTerrainOffset = (file: string, offset: number): Promise<ApiResult> => fetch('/admin/api/terrain/offset', jsonReq('PUT', { file, offset })).then(asJson);
+export const setTerrainScale = (file: string, scale: number): Promise<ApiResult> => fetch('/admin/api/terrain/scale', jsonReq('PUT', { file, scale })).then(asJson);
 
 export interface UserEntry { username: string; sprite: string | null; source: 'default' | 'local'; vip: boolean }
 export const getUsers = (): Promise<UserEntry[]> => fetch('/admin/api/users').then(asJson);

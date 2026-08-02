@@ -58,27 +58,35 @@ test('deleteSprite remove só local; recusa padrão', () => {
   expect(() => deleteSprite('hero', { overlayDir: dir })).toThrow();
 });
 
-test('setSpriteScale atualiza scale de sprite local', () => {
+test('setSpriteScale ajusta a escala via mapa scales (sprite local)', () => {
   const dir = overlayTmp();
   saveSprite({ id: 'x', scale: 2, facing: 'front', frames: [PNG] }, { overlayDir: dir });
   setSpriteScale('x', 4, { overlayDir: dir });
   const local = JSON.parse(readFileSync(join(dir, 'characters.local.json'), 'utf8'));
-  const entry = local.characters.find((c) => c.id === 'x');
-  expect(entry.scale).toBe(4);
+  expect(local.scales.x).toBe(4);
+  expect(listSprites({ overlayDir: dir }).find((s) => s.id === 'x').scale).toBe(4);
 });
 
-test('setSpriteScale remove o campo scale quando igual ao default (2)', () => {
+test('setSpriteScale funciona para sprite PADRÃO (grava no mapa, não toca no characters.json)', () => {
   const dir = overlayTmp();
-  saveSprite({ id: 'x', scale: 4, facing: 'front', frames: [PNG] }, { overlayDir: dir });
-  setSpriteScale('x', 2, { overlayDir: dir });
+  setSpriteScale('hero', 3, { overlayDir: dir });
+  expect(listSprites({ overlayDir: dir }).find((s) => s.id === 'hero').scale).toBe(3);
+  const def = JSON.parse(readFileSync(join(dir, 'characters.json'), 'utf8'));
+  expect(def.characters.find((c) => c.id === 'hero').scale).toBeUndefined();
+});
+
+test('setSpriteScale remove do mapa quando igual ao default (2)', () => {
+  const dir = overlayTmp();
+  setSpriteScale('hero', 4, { overlayDir: dir });
+  setSpriteScale('hero', 2, { overlayDir: dir });
   const local = JSON.parse(readFileSync(join(dir, 'characters.local.json'), 'utf8'));
-  const entry = local.characters.find((c) => c.id === 'x');
-  expect(entry.scale).toBeUndefined();
+  expect(local.scales.hero).toBeUndefined();
+  expect(listSprites({ overlayDir: dir }).find((s) => s.id === 'hero').scale).toBe(2);
 });
 
 test('setSpriteScale lança erro para sprite inexistente', () => {
   const dir = overlayTmp();
-  expect(() => setSpriteScale('inexistente', 3, { overlayDir: dir })).toThrow('sprite local não encontrado');
+  expect(() => setSpriteScale('inexistente', 3, { overlayDir: dir })).toThrow('sprite não encontrado');
 });
 
 test('setSpriteScale lança erro para scale inválida (0)', () => {

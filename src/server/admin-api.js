@@ -1,6 +1,6 @@
 import { loadConfig as loadConfigReal, saveConfig as saveConfigReal, saveKey as saveKeyReal } from './config.js';
 import { listSprites as listSpritesReal, saveSprite as saveSpriteReal, deleteSprite as deleteSpriteReal, setSpriteHidden as setSpriteHiddenReal, setSpriteScale as setSpriteScaleReal } from './sprites.js';
-import { listTerrains as listTerrainsReal, saveTerrain as saveTerrainReal, setActiveTerrain as setActiveTerrainReal, deleteTerrain as deleteTerrainReal, setTerrainOffset as setTerrainOffsetReal } from './terrains.js';
+import { listTerrains as listTerrainsReal, saveTerrain as saveTerrainReal, setActiveTerrain as setActiveTerrainReal, deleteTerrain as deleteTerrainReal, setTerrainOffset as setTerrainOffsetReal, setTerrainScale as setTerrainScaleReal } from './terrains.js';
 import { listUsers as listUsersReal, setUser as setUserReal, removeUser as removeUserReal } from './users.js';
 
 // Handler das rotas /admin/api/*. Deps injetáveis para teste.
@@ -20,6 +20,7 @@ export function createAdminApi({
   setActiveTerrain = setActiveTerrainReal,
   deleteTerrain = deleteTerrainReal,
   setTerrainOffset = setTerrainOffsetReal,
+  setTerrainScale = setTerrainScaleReal,
   listUsers = listUsersReal,
   setUser = setUserReal,
   removeUser = removeUserReal,
@@ -35,6 +36,11 @@ export function createAdminApi({
     res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(obj));
   }
+  function terrainFrame() {
+    const { active, items } = listTerrains();
+    const item = items.find((i) => i.file === active);
+    return { type: 'terrain', active, offset: item?.offset ?? 0, scale: item?.scale ?? 1 };
+  }
 
   async function route(req, res, path) {
     if (path === '/admin/api/config' && req.method === 'GET') {
@@ -46,7 +52,7 @@ export function createAdminApi({
       const body = await readBody(req);
       try {
         const cfg = saveConfig(body);
-        bridge.broadcast({ type: 'config', avatarLimit: cfg.avatarLimit, inactivitySeconds: cfg.inactivitySeconds, stageMode: cfg.stageMode, onlyInteractors: cfg.onlyInteractors, likeThreshold: cfg.likeThreshold });
+        bridge.broadcast({ type: 'config', avatarLimit: cfg.avatarLimit, inactivitySeconds: cfg.inactivitySeconds, stageMode: cfg.stageMode, onlyInteractors: cfg.onlyInteractors, likeThreshold: cfg.likeThreshold, effectsVolume: cfg.effectsVolume, avatarScale: cfg.avatarScale });
         return json(res, 200, { ok: true });
       } catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
@@ -70,22 +76,22 @@ export function createAdminApi({
     }
     if (path === '/admin/api/sprites' && req.method === 'POST') {
       const body = await readBody(req);
-      try { saveSprite(body); return json(res, 200, { ok: true }); }
+      try { saveSprite(body); bridge.broadcast({ type: 'sprites' }); return json(res, 200, { ok: true }); }
       catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     if (path === '/admin/api/sprites/hidden' && req.method === 'PUT') {
       const body = await readBody(req);
-      try { setSpriteHidden(body.id, body.hidden); return json(res, 200, { ok: true }); }
+      try { setSpriteHidden(body.id, body.hidden); bridge.broadcast({ type: 'sprites' }); return json(res, 200, { ok: true }); }
       catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     if (path === '/admin/api/sprites/scale' && req.method === 'PUT') {
       const body = await readBody(req);
-      try { setSpriteScale(body.id, body.scale); return json(res, 200, { ok: true }); }
+      try { setSpriteScale(body.id, body.scale); bridge.broadcast({ type: 'sprites' }); return json(res, 200, { ok: true }); }
       catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     if (path.startsWith('/admin/api/sprites/') && req.method === 'DELETE') {
       const id = decodeURIComponent(path.slice('/admin/api/sprites/'.length));
-      try { deleteSprite(id); return json(res, 200, { ok: true }); }
+      try { deleteSprite(id); bridge.broadcast({ type: 'sprites' }); return json(res, 200, { ok: true }); }
       catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     if (path === '/admin/api/users' && req.method === 'GET') {
@@ -93,12 +99,12 @@ export function createAdminApi({
     }
     if (path === '/admin/api/users' && req.method === 'PUT') {
       const body = await readBody(req);
-      try { setUser(body); return json(res, 200, { ok: true }); }
+      try { setUser(body); bridge.broadcast({ type: 'users' }); return json(res, 200, { ok: true }); }
       catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     if (path.startsWith('/admin/api/users/') && req.method === 'DELETE') {
       const username = decodeURIComponent(path.slice('/admin/api/users/'.length));
-      try { removeUser(username); return json(res, 200, { ok: true }); }
+      try { removeUser(username); bridge.broadcast({ type: 'users' }); return json(res, 200, { ok: true }); }
       catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     if (path === '/admin/api/terrain' && req.method === 'GET') {
@@ -106,16 +112,14 @@ export function createAdminApi({
     }
     if (path === '/admin/api/terrain' && req.method === 'POST') {
       const body = await readBody(req);
-      try { const t = saveTerrain(body); return json(res, 200, { ok: true, ...t }); }
+      try { const t = saveTerrain(body); bridge.broadcast(terrainFrame()); return json(res, 200, { ok: true, ...t }); }
       catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
     if (path === '/admin/api/terrain/active' && req.method === 'PUT') {
       const body = await readBody(req);
       try {
         setActiveTerrain(body.active ?? null);
-        const { active, items } = listTerrains();
-        const offset = items.find((i) => i.file === active)?.offset ?? 0;
-        bridge.broadcast({ type: 'terrain', active, offset });
+        bridge.broadcast(terrainFrame());
         return json(res, 200, { ok: true });
       } catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }
@@ -123,9 +127,15 @@ export function createAdminApi({
       const body = await readBody(req);
       try {
         setTerrainOffset(body.file, body.offset);
-        const { active, items } = listTerrains();
-        const offset = items.find((i) => i.file === active)?.offset ?? 0;
-        bridge.broadcast({ type: 'terrain', active, offset });
+        bridge.broadcast(terrainFrame());
+        return json(res, 200, { ok: true });
+      } catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+    }
+    if (path === '/admin/api/terrain/scale' && req.method === 'PUT') {
+      const body = await readBody(req);
+      try {
+        setTerrainScale(body.file, body.scale);
+        bridge.broadcast(terrainFrame());
         return json(res, 200, { ok: true });
       } catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }

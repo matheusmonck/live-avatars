@@ -24,7 +24,8 @@ export function listSprites({ overlayDir } = {}) {
   const localData = readJson(join(base, 'characters.local.json')) ?? {};
   const loc = localData.characters ?? [];
   const hidden = new Set(localData.hidden ?? []);
-  const entry = (e, source) => ({ id: e.id, frames: e.frames ?? DEFAULTS.frames, scale: e.scale ?? DEFAULTS.scale, facing: e.facing ?? DEFAULTS.facing, source, hidden: hidden.has(e.id) });
+  const scales = localData.scales ?? {}; // override de escala por id (vale p/ default e local)
+  const entry = (e, source) => ({ id: e.id, frames: e.frames ?? DEFAULTS.frames, scale: scales[e.id] ?? e.scale ?? DEFAULTS.scale, facing: e.facing ?? DEFAULTS.facing, source, hidden: hidden.has(e.id) });
   const byId = new Map();
   for (const e of def) byId.set(e.id, entry(e, 'default'));
   for (const e of loc) byId.set(e.id, entry(e, 'local'));
@@ -59,15 +60,20 @@ export function setSpriteHidden(id, hidden, { overlayDir } = {}) {
   writeFileSync(localPath, JSON.stringify(data, null, 2) + '\n', 'utf8');
 }
 
+// Ajusta a escala de QUALQUER sprite (default ou local), gravando no mapa
+// `scales` do characters.local.json (o characters.json versionado nunca é escrito).
 export function setSpriteScale(id, scale, { overlayDir } = {}) {
   const base = overlayBase(overlayDir);
-  const localPath = join(base, 'characters.local.json');
-  const data = readJson(localPath) ?? { characters: [] };
-  const entry = (data.characters ?? []).find((c) => c.id === id);
-  if (!entry) throw new Error('sprite local não encontrado');
+  if (!listSprites({ overlayDir }).some((s) => s.id === id)) throw new Error('sprite não encontrado');
   const s = Number(scale);
   if (!Number.isFinite(s) || s <= 0) throw new Error('escala inválida');
-  if (s === DEFAULTS.scale) delete entry.scale; else entry.scale = s;
+  const localPath = join(base, 'characters.local.json');
+  const data = readJson(localPath) ?? { characters: [] };
+  data.scales = data.scales ?? {};
+  if (s === DEFAULTS.scale) delete data.scales[id]; else data.scales[id] = s;
+  // se havia escala legada na entrada local, o mapa passa a ser a fonte única
+  const local = (data.characters ?? []).find((c) => c.id === id);
+  if (local) delete local.scale;
   writeFileSync(localPath, JSON.stringify(data, null, 2) + '\n', 'utf8');
 }
 

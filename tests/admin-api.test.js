@@ -26,6 +26,7 @@ const depsBase = () => ({
   setActiveTerrain: vi.fn(),
   deleteTerrain: vi.fn(),
   setTerrainOffset: vi.fn(),
+  setTerrainScale: vi.fn(),
 });
 
 test('GET /admin/api/config devolve config sem a chave, com hasKey', async () => {
@@ -44,6 +45,16 @@ test('PUT /admin/api/config faz broadcast do frame config com stageMode', async 
     const r = await fetch(`${base}/admin/api/config`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
     expect(r.status).toBe(200);
     expect(deps.bridge.broadcast).toHaveBeenCalledWith(expect.objectContaining({ type: 'config', stageMode: false }));
+  });
+});
+
+test('PUT /admin/api/config faz broadcast com avatarScale e effectsVolume', async () => {
+  const deps = depsBase();
+  deps.saveConfig = vi.fn(() => ({ avatarLimit: 18, inactivitySeconds: 150, stageMode: true, onlyInteractors: true, likeThreshold: 10, effectsVolume: 0.6, avatarScale: 3 }));
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/config`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ escalaAvatares: 3 }) });
+    expect(r.status).toBe(200);
+    expect(deps.bridge.broadcast).toHaveBeenCalledWith(expect.objectContaining({ type: 'config', avatarScale: 3, effectsVolume: 0.6 }));
   });
 });
 
@@ -179,7 +190,24 @@ test('PUT /admin/api/sprites/scale chama setSpriteScale e devolve 200', async ()
     const r = await fetch(`${base}/admin/api/sprites/scale`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: 'hero', scale: 4 }) });
     expect(r.status).toBe(200);
     expect(deps.setSpriteScale).toHaveBeenCalledWith('hero', 4);
+    expect(deps.bridge.broadcast).toHaveBeenCalledWith(expect.objectContaining({ type: 'sprites' }));
   });
+});
+
+test('POST/hidden/DELETE de sprites fazem broadcast ao vivo {type:sprites}', async () => {
+  for (const req of [
+    { path: '/admin/api/sprites', method: 'POST', body: { id: 'novo', frames: ['x'] } },
+    { path: '/admin/api/sprites/hidden', method: 'PUT', body: { id: 'hero', hidden: true } },
+    { path: '/admin/api/sprites/robo', method: 'DELETE' },
+  ]) {
+    const deps = depsBase();
+    await comServidor(deps, async (base) => {
+      const init = { method: req.method, headers: { 'content-type': 'application/json' } };
+      if (req.body) init.body = JSON.stringify(req.body);
+      await fetch(`${base}${req.path}`, init);
+      expect(deps.bridge.broadcast).toHaveBeenCalledWith(expect.objectContaining({ type: 'sprites' }));
+    });
+  }
 });
 
 test('PUT /admin/api/sprites/scale com erro devolve 400', async () => {
@@ -211,6 +239,18 @@ test('PUT /admin/api/users chama setUser', async () => {
     const r = await fetch(`${base}/admin/api/users`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'ana', sprite: 'luffy' }) });
     expect(r.status).toBe(200);
     expect(deps.setUser).toHaveBeenCalledWith({ username: 'ana', sprite: 'luffy' });
+    expect(deps.bridge.broadcast).toHaveBeenCalledWith(expect.objectContaining({ type: 'users' }));
+  });
+});
+
+test('PUT /admin/api/terrain/scale chama setTerrainScale e faz broadcast com scale', async () => {
+  const deps = depsBase();
+  deps.listTerrains = () => ({ active: 'grama.png', items: [{ file: 'grama.png', offset: 10, scale: 2.5 }] });
+  await comServidor(deps, async (base) => {
+    const r = await fetch(`${base}/admin/api/terrain/scale`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: 'grama.png', scale: 2.5 }) });
+    expect(r.status).toBe(200);
+    expect(deps.setTerrainScale).toHaveBeenCalledWith('grama.png', 2.5);
+    expect(deps.bridge.broadcast).toHaveBeenCalledWith(expect.objectContaining({ type: 'terrain', scale: 2.5, offset: 10 }));
   });
 });
 

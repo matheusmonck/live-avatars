@@ -23,13 +23,13 @@ export function SpritesTab() {
     e.preventDefault();
     const frames = await Promise.all(files.map(readDataURL));
     const r = await saveSprite({ id, scale: Number(scale), facing, frames });
-    if (!r?.error) { setMsg('Adicionado ✓ (atualize a fonte no OBS)'); setId(''); setFiles([]); load(); } else setMsg(r.error);
+    if (!r?.error) { setMsg('Adicionado ✓ (ao vivo)'); setId(''); setFiles([]); load(); } else setMsg(r.error);
   };
   const remove = async (sid: string) => { if (confirm(`Remover o sprite "${sid}"?`)) { await deleteSprite(sid); load(); } };
   const toggleHidden = async (s: SpriteItem) => { await setSpriteHidden(s.id, !s.hidden); load(); };
   const changeScale = async (id: string, scale: number) => {
     const r = await setSpriteScale(id, scale);
-    setMsg(r?.error ? r.error : 'Escala salva ✓ (atualize a fonte no OBS)');
+    setMsg(r?.error ? r.error : 'Escala aplicada ✓ (ao vivo)');
     load();
   };
   const hasLocal = sprites.some((s) => s.source === 'local');
@@ -40,11 +40,9 @@ export function SpritesTab() {
           <li key={s.id} className="row" style={s.hidden ? { opacity: 0.5 } : undefined}>
             <Preview base={baseFor(s)} id={s.id} frames={s.frames} />
             <span>{s.id} <small className="muted">({s.source === 'local' ? 'seu' : 'padrão'}{s.hidden ? ', oculto' : ''})</small></span>
+            <input type="number" min={1} max={6} step={0.5} defaultValue={s.scale} className="input" style={{ width: 64 }} title="escala (ao vivo)" onBlur={(e) => changeScale(s.id, Number(e.target.value))} />
             {s.source === 'local' ? (
-              <>
-                <input type="number" min={1} max={6} step={0.5} defaultValue={s.scale} className="input" style={{ width: 64 }} title="escala" onBlur={(e) => changeScale(s.id, Number(e.target.value))} />
-                <Button variant="danger" onClick={() => remove(s.id)}>Remover</Button>
-              </>
+              <Button variant="danger" onClick={() => remove(s.id)}>Remover</Button>
             ) : (
               <Button onClick={() => toggleHidden(s)}>{s.hidden ? 'Restaurar' : 'Ocultar'}</Button>
             )}

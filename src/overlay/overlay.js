@@ -5,7 +5,7 @@ import { loadCharacters } from './characters.js';
 
 // Valores padrão só até o backend enviar o frame { type: 'config' } (fonte de
 // verdade = config/config.json). O overlay se reconfigura ao recebê-lo.
-const DEFAULT_CONFIG = { avatarLimit: 18, inactivitySeconds: 150, stageMode: true, onlyInteractors: true, likeThreshold: 10 };
+const DEFAULT_CONFIG = { avatarLimit: 18, inactivitySeconds: 150, stageMode: true, onlyInteractors: true, likeThreshold: 10, avatarScale: 2 };
 
 const statusEl = document.getElementById('status');
 
@@ -15,7 +15,7 @@ try {
   const res = await fetch('terrain.local.json');
   if (res.ok) {
     const t = await res.json();
-    await scene.applyTerrain({ active: t?.active ?? null, offset: t?.offsets?.[t?.active] ?? 0 });
+    await scene.applyTerrain({ active: t?.active ?? null, offset: t?.offsets?.[t?.active] ?? 0, scale: t?.scales?.[t?.active] ?? 1 });
   }
 } catch {}
 const manager = createManager(scene, DEFAULT_CONFIG);
@@ -24,6 +24,8 @@ connectWS({
   onEvent: (event) => {
     if (event.type === 'config') { manager.configure(event); return; }
     if (event.type === 'terrain') { scene.applyTerrain(event); return; }
+    if (event.type === 'sprites') { manager.onSprites(); return; }
+    if (event.type === 'users') { manager.onUsers(); return; }
     manager.handle(event);
   },
   onStatus: (s) => {

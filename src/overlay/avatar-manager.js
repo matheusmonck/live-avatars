@@ -2,7 +2,7 @@ import { createRegistry } from './avatar-registry.js';
 import { createThrottle } from './throttle.js';
 import { createAvatarVisual } from './avatar.js';
 import * as R from './reactions.js';
-import { vipUsers } from './characters.js';
+import { vipUsers, isVip, characterForUser, rosterIds, reloadCharacters } from './characters.js';
 
 export function createManager(scene, cfg) {
   const registry = createRegistry({
@@ -15,6 +15,7 @@ export function createManager(scene, cfg) {
     stageMode: cfg.stageMode !== false,
     onlyInteractors: cfg.onlyInteractors !== false,
     likeThreshold: Number.isFinite(cfg.likeThreshold) ? cfg.likeThreshold : 10,
+    avatarScale: Number.isFinite(cfg.avatarScale) ? cfg.avatarScale : 2,
   };
   const throttle = createThrottle(1500);
   const THROTTLED_TYPES = new Set(['like', 'follow', 'share']);
@@ -26,11 +27,18 @@ export function createManager(scene, cfg) {
     const result = registry.register(event.username, Date.now());
     for (const u of result.removed) removeVisual(u);
     if (result.isNew) {
-      const v = createAvatarVisual(result.avatar, scene);
+      const v = createAvatarVisual(result.avatar, scene, settings.avatarScale);
       visuals.set(event.username, v);
     }
     return visuals.get(event.username);
   }
+
+  // Re-escala todos os avatares na tela (mudou escala global, per-sprite ou resize).
+  function rescaleAll() {
+    const ui = scene.uiScale();
+    for (const v of visuals.values()) v.applyScale(settings.avatarScale, ui);
+  }
+  scene.app.renderer.on('resize', rescaleAll);
 
   function removeVisual(usuario) {
     const v = visuals.get(usuario);
@@ -85,7 +93,30 @@ export function createManager(scene, cfg) {
     if (typeof newCfg.stageMode === 'boolean') settings.stageMode = newCfg.stageMode;
     if (typeof newCfg.onlyInteractors === 'boolean') settings.onlyInteractors = newCfg.onlyInteractors;
     if (Number.isFinite(newCfg.likeThreshold)) settings.likeThreshold = newCfg.likeThreshold;
+    if (Number.isFinite(newCfg.avatarScale)) { settings.avatarScale = newCfg.avatarScale; rescaleAll(); }
   }
 
-  return { handle, configure };
+  // Sprites mudaram ao vivo (escala/ocultar/upload/excluir). Reconciliação híbrida:
+  // re-escala todos; remove quem virou identidade inválida (sprite oculto/excluído) —
+  // volta correto no próximo evento.
+  async function onSprites() {
+    await reloadCharacters();
+    const ids = new Set(rosterIds());
+    for (const [u, v] of visuals) if (!ids.has(v.characterId())) removeVisual(u);
+    rescaleAll();
+    ensureVips();
+  }
+
+  // Usuários mudaram ao vivo (override/VIP). Coroa reconcilia na hora; troca de
+  // identidade (novo override) faz o avatar sair e voltar correto.
+  async function onUsers() {
+    await reloadCharacters();
+    for (const [u, v] of visuals) {
+      v.setVip(isVip(u));
+      if (characterForUser(u) !== v.characterId()) removeVisual(u);
+    }
+    ensureVips();
+  }
+
+  return { handle, configure, onSprites, onUsers };
 }

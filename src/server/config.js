@@ -11,6 +11,7 @@ export const DEFAULT_CONFIG = {
   port: 8737,
   onlyInteractors: true,
   likeThreshold: 10,
+  avatarScale: 2,
 };
 
 function clamp(value, min, max, fallback) {
@@ -39,6 +40,7 @@ export function validateConfig(raw) {
     port: Math.round(clamp(raw.porta, 1024, 65535, DEFAULT_CONFIG.port)),
     onlyInteractors: bool(raw.soQuemInterage, DEFAULT_CONFIG.onlyInteractors),
     likeThreshold: Math.round(clamp(raw.coracoesParaAparecer, 1, 1000, DEFAULT_CONFIG.likeThreshold)),
+    avatarScale: clamp(raw.escalaAvatares, 0.2, 6, DEFAULT_CONFIG.avatarScale),
   };
 }
 
@@ -53,6 +55,7 @@ export function toRawConfig(en) {
     porta: en.port,
     soQuemInterage: en.onlyInteractors,
     coracoesParaAparecer: en.likeThreshold,
+    escalaAvatares: en.avatarScale,
   };
 }
 

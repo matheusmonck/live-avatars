@@ -16,7 +16,7 @@ export function ConfigTab() {
   const check = (k: keyof Config) => (e: ChangeEvent<HTMLInputElement>) => setCfg({ ...cfg, [k]: e.target.checked });
   const salvar = async (e: FormEvent) => {
     e.preventDefault();
-    const r = await putConfig({ username: cfg.username, avatarLimit: cfg.avatarLimit, inactivitySeconds: cfg.inactivitySeconds, effectsVolume: cfg.effectsVolume, stageMode: cfg.stageMode, onlyInteractors: cfg.onlyInteractors, likeThreshold: cfg.likeThreshold, port: cfg.port });
+    const r = await putConfig({ username: cfg.username, avatarLimit: cfg.avatarLimit, inactivitySeconds: cfg.inactivitySeconds, effectsVolume: cfg.effectsVolume, stageMode: cfg.stageMode, onlyInteractors: cfg.onlyInteractors, likeThreshold: cfg.likeThreshold, avatarScale: cfg.avatarScale, port: cfg.port });
     setMsg(r?.error ? r.error : 'Salvo ✓');
   };
   const salvarChave = async () => {
@@ -29,6 +29,7 @@ export function ConfigTab() {
         <form onSubmit={salvar} className="grid">
           <Field label="@ do TikTok" value={cfg.username} onChange={(e) => setCfg({ ...cfg, username: e.target.value })} placeholder="seu_usuario" />
           <Field label="Limite de avatares" type="number" min={1} max={60} value={cfg.avatarLimit} onChange={num('avatarLimit')} />
+          <Field label="Escala global dos avatares (aplica ao vivo)" type="number" min={0.2} max={6} step={0.1} value={cfg.avatarScale} onChange={num('avatarScale')} />
           <Field label="Inatividade (s)" type="number" min={10} max={3600} value={cfg.inactivitySeconds} onChange={num('inactivitySeconds')} />
           <Field label="Volume dos efeitos" type="number" min={0} max={1} step={0.1} value={cfg.effectsVolume} onChange={num('effectsVolume')} />
           <Field label="Modo palco (destaque de presente + banner)" type="checkbox" checked={cfg.stageMode} onChange={check('stageMode')} />

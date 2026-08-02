@@ -15,10 +15,10 @@ function statePath(base) { return join(base, 'terrain.local.json'); }
 function terrainDir(base) { return join(base, 'assets/terrain-local'); }
 function readState(base) {
   const s = readJson(statePath(base));
-  return { active: s?.active ?? null, offsets: s?.offsets ?? {} };
+  return { active: s?.active ?? null, offsets: s?.offsets ?? {}, scales: s?.scales ?? {} };
 }
 function writeState(base, state) {
-  const out = { active: state.active ?? null, offsets: state.offsets ?? {} };
+  const out = { active: state.active ?? null, offsets: state.offsets ?? {}, scales: state.scales ?? {} };
   writeFileSync(statePath(base), JSON.stringify(out, null, 2) + '\n', 'utf8');
 }
 function clampOffset(v) {
@@ -26,12 +26,17 @@ function clampOffset(v) {
   if (!Number.isFinite(n)) return 0;
   return Math.min(400, Math.max(-400, n));
 }
+function clampScale(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 1;
+  return Math.min(4, Math.max(0.2, n));
+}
 
 export function listTerrains({ overlayDir } = {}) {
   const base = overlayBase(overlayDir);
   const st = readState(base);
   let items = [];
-  try { items = readdirSync(terrainDir(base)).map((file) => ({ file, offset: st.offsets[file] ?? 0 })); } catch {}
+  try { items = readdirSync(terrainDir(base)).map((file) => ({ file, offset: st.offsets[file] ?? 0, scale: st.scales[file] ?? 1 })); } catch {}
   return { active: st.active, items };
 }
 
@@ -65,11 +70,19 @@ export function setTerrainOffset(file, offset, { overlayDir } = {}) {
   writeState(base, st);
 }
 
+export function setTerrainScale(file, scale, { overlayDir } = {}) {
+  const base = overlayBase(overlayDir);
+  const st = readState(base);
+  st.scales[file] = clampScale(scale);
+  writeState(base, st);
+}
+
 export function deleteTerrain(file, { overlayDir } = {}) {
   const base = overlayBase(overlayDir);
   rmSync(join(terrainDir(base), file), { force: true });
   const st = readState(base);
   if (st.active === file) st.active = null;
   delete st.offsets[file];
+  delete st.scales[file];
   writeState(base, st);
 }

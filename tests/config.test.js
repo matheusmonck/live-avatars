@@ -95,3 +95,14 @@ test('toRawConfig inclui soQuemInterage e coracoesParaAparecer', () => {
   expect(raw).toHaveProperty('soQuemInterage');
   expect(raw).toHaveProperty('coracoesParaAparecer');
 });
+
+test('avatarScale: default 2, lê escalaAvatares e clampa (0.2–6)', () => {
+  expect(validateConfig({}).avatarScale).toBe(2);
+  expect(validateConfig({ escalaAvatares: 3.5 }).avatarScale).toBe(3.5);
+  expect(validateConfig({ escalaAvatares: 99 }).avatarScale).toBe(6);
+  expect(validateConfig({ escalaAvatares: 0 }).avatarScale).toBe(0.2);
+});
+
+test('toRawConfig mapeia avatarScale para escalaAvatares', () => {
+  expect(toRawConfig({ ...validateConfig({}), avatarScale: 2.5 }).escalaAvatares).toBe(2.5);
+});

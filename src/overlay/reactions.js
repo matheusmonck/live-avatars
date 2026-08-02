@@ -82,17 +82,18 @@ function floatUp(scene, node, { life, size, rise, sway, spin, delay }) {
 
 function emitFloaters(scene, x, y, kind, contextFn) {
   const cfg = TUNE[kind];
+  const ui = scene.uiScale();
   for (let i = 0; i < cfg.count; i++) {
     const node = glowNode(contextFn(), pick(cfg.colors));
-    node._x0 = x + rand(-18, 18);
+    node._x0 = x + rand(-18, 18) * ui;
     node._y0 = y;
     node._phase = Math.random() * Math.PI * 2;
     node.x = node._x0; node.y = node._y0;
     floatUp(scene, node, {
       life: rand(cfg.life[0], cfg.life[1]),
-      size: rand(cfg.size[0], cfg.size[1]),
-      rise: rand(70, 120),
-      sway: rand(6, 16),
+      size: rand(cfg.size[0], cfg.size[1]) * ui,
+      rise: rand(70, 120) * ui,
+      sway: rand(6, 16) * ui,
       spin: rand(0.1, 0.3),
       delay: i * 55,
     });
@@ -101,25 +102,26 @@ function emitFloaters(scene, x, y, kind, contextFn) {
 
 export function reactionHearts(scene, avatar) {
   const { x, y } = avatar.position();
-  emitFloaters(scene, x, y - 50, 'hearts', heartContext);
+  emitFloaters(scene, x, y - 50 * scene.uiScale(), 'hearts', heartContext);
 }
 
 export function reactionStars(scene, avatar) {
   const { x, y } = avatar.position();
-  emitFloaters(scene, x, y - 50, 'stars', starContext);
+  emitFloaters(scene, x, y - 50 * scene.uiScale(), 'stars', starContext);
 }
 
 // ---------------------------------------------------------------------------
 // Animador 2: confete (gravidade + flutter + rotação + fade).
 // ---------------------------------------------------------------------------
 export function confettiBurst(scene, x, y, count) {
+  const ui = scene.uiScale();
   for (let i = 0; i < count; i++) {
     const g = new PIXI.Graphics(confettiContext());
     g.tint = pick(TUNE.confetti.colors);
     g.x = x; g.y = y;
     scene.effectsLayer.addChild(g);
     const ribbon = Math.random() < 0.5;
-    g.scale.set(rand(0.5, 1.1) * (ribbon ? 0.5 : 1), rand(0.5, 1.1) * (ribbon ? 1.6 : 1));
+    g.scale.set(rand(0.5, 1.1) * (ribbon ? 0.5 : 1) * ui, rand(0.5, 1.1) * (ribbon ? 1.6 : 1) * ui);
     const baseSx = g.scale.x;
     let vx = rand(-0.45, 0.45);
     let vy = rand(-0.7, -0.2);
@@ -161,16 +163,17 @@ function popInPlace(scene, avatar, peak) {
 // ---------------------------------------------------------------------------
 export function reactionFollow(scene, avatar, name, opts = {}) {
   const stage = opts.stage !== false;
+  const ui = scene.uiScale();
   if (!stage) {
     const { x, y } = avatar.position();
-    confettiBurst(scene, x, y - 50, TUNE.followFallback);
+    confettiBurst(scene, x, y - 50 * ui, TUNE.followFallback);
     return;
   }
   const hp = scene.highlightPoint();
   confettiBurst(scene, hp.x, hp.y, TUNE.followConfetti);
   const banner = new PIXI.Text({
     text: `⭐ novo seguidor: @${name} 💖`,
-    style: { fontFamily: 'system-ui', fontSize: 22, fill: 0xffffff, stroke: { color: 0x000000, width: 4 } },
+    style: { fontFamily: 'system-ui', fontSize: Math.round(22 * ui), fill: 0xffffff, stroke: { color: 0x000000, width: 4 } },
   });
   banner.anchor.set(0.5);
   banner.x = scene.app.screen.width / 2;
@@ -195,7 +198,7 @@ export function reactionGift(scene, avatar, event, opts = {}) {
   const fx = giftScale(event.coins);
   if (!stage) {
     const { x, y } = avatar.position();
-    confettiBurst(scene, x, y - 50, fx.confetti);
+    confettiBurst(scene, x, y - 50 * scene.uiScale(), fx.confetti);
     popInPlace(scene, avatar, fx.scale);
     return;
   }

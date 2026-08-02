@@ -1,3 +1,5 @@
+import { effectiveScale } from './scale.js';
+
 // Roster de personagens orientado a dados: characters.json (repo, CC0 padrão) +
 // characters.local.json (gitignored, sprites do usuário). Sprites de 16x16, N quadros.
 const ANIM_SPEED = 0.06;          // troca de quadro por ms de ticker
@@ -46,9 +48,9 @@ let overrides = {};               // mapa usuario -> spriteId (characters.json +
 let vipSet = new Set();           // usernames VIP (characters.local.json vip:[...])
 const cache = new Map();          // id -> [Texture, ...]
 
-async function fetchJson(url) {
+async function fetchJson(url, bust = false) {
   try {
-    const res = await fetch(url);
+    const res = await fetch(bust ? `${url}?t=${Date.now()}` : url);
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -56,13 +58,20 @@ async function fetchJson(url) {
   }
 }
 
-// Pré-carrega todas as texturas (chamar 1x antes de criar avatares).
-export async function loadCharacters() {
-  const defData = (await fetchJson('characters.json')) ?? {};
-  const locData = (await fetchJson('characters.local.json')) ?? {};
-  const defaults = (defData.characters ?? []).map((e) => resolveEntry(e, 'assets/characters'));
+// Override de escala por id (mapa `scales` do characters.local.json) sobre a entrada crua.
+function withScale(entry, scales) {
+  return scales?.[entry.id] != null ? { ...entry, scale: scales[entry.id] } : entry;
+}
+
+// Reconstrói o roster + overrides + vip e (re)carrega as texturas. `bust` fura o
+// cache do fetch pra refletir edições ao vivo do /admin.
+async function buildAndLoad(bust) {
+  const defData = (await fetchJson('characters.json', bust)) ?? {};
+  const locData = (await fetchJson('characters.local.json', bust)) ?? {};
+  const scales = locData.scales ?? {};
+  const defaults = (defData.characters ?? []).map((e) => resolveEntry(withScale(e, scales), 'assets/characters'));
   if (!defaults.length) throw new Error('characters.json ausente ou vazio');
-  const locals = (locData.characters ?? []).map((e) => resolveEntry(e, 'assets/characters-local'));
+  const locals = (locData.characters ?? []).map((e) => resolveEntry(withScale(e, scales), 'assets/characters-local'));
   overrides = { ...(defData.overrides ?? {}), ...(locData.overrides ?? {}) };
   vipSet = new Set(locData.vip ?? []);
 
@@ -77,11 +86,19 @@ export async function loadCharacters() {
     const t = map[u];
     if (t?.source) t.source.scaleMode = 'nearest'; // pixel nítido
   }
+  cache.clear();
   for (const e of roster) cache.set(e.id, urlsFor(e).map((u) => map[u]));
 }
 
+// Pré-carrega todas as texturas (chamar 1x antes de criar avatares).
+export async function loadCharacters() { await buildAndLoad(false); }
+// Recarrega ao vivo (evento WS `sprites`/`users`): reflete escala, ocultar, upload, override, VIP.
+export async function reloadCharacters() { await buildAndLoad(true); }
+
 export function isVip(username) { return vipSet.has(username); }
 export function vipUsers() { return [...vipSet]; }
+export function rosterIds() { return roster.map((e) => e.id); }
+export function entryScale(id) { return roster.find((e) => e.id === id)?.scale ?? DEFAULTS.scale; }
 
 // Personagem fixo por usuário (hash estável sobre o roster carregado).
 export function characterForUser(username) {
@@ -94,17 +111,29 @@ export function createCharacterSprite(username) {
   const entry = roster.find((e) => e.id === id);
   const sprite = new PIXI.AnimatedSprite(cache.get(id));
   sprite.anchor.set(0.5, 1); // "pés" na origem (linha do chão)
-  sprite.scale.set(entry.scale);
   sprite.animationSpeed = ANIM_SPEED;
   sprite.play();
+  sprite.spriteId = id;
 
-  // Espelha o sprite pra olhar na direção do movimento (+1 direita, -1 esquerda).
-  // Arte 'front' não vira; 'left'/'right' viram conforme a convenção.
   const facing = entry.facing;
+  let abs = entry.scale;   // escala efetiva atual (px), atualizada por applyScale
+  sprite._dir = 1;
+
+  // Espelha pra olhar na direção do movimento (+1 direita, -1 esquerda).
+  // Arte 'front' não vira; 'left'/'right' viram conforme a convenção.
   sprite.faceTo = (direction) => {
-    if (facing === 'front') return;
+    sprite._dir = direction;
+    if (facing === 'front') { sprite.scale.set(abs); return; }
     const facesLeft = facing === 'left';
-    sprite.scale.x = entry.scale * ((direction === -1) === facesLeft ? 1 : -1);
+    sprite.scale.x = abs * ((direction === -1) === facesLeft ? 1 : -1);
+    sprite.scale.y = abs;
   };
+  // Recalcula a escala efetiva (entry × global × uiScale) e reaplica o facing.
+  // Lê a escala por sprite do roster VIVO — reflete edição ao vivo após reload.
+  sprite.applyScale = (globalScale, ui) => {
+    abs = effectiveScale(entryScale(sprite.spriteId), globalScale, ui);
+    sprite.faceTo(sprite._dir);
+  };
+  sprite.faceTo(1); // escala inicial
   return sprite;
 }
