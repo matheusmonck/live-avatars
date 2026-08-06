@@ -21,6 +21,8 @@ export async function createScene(element) {
   let bgSprite = null;
   let bgOffset = 0;
   let bgScale = 1;
+  let groundOffset = 0; // deslocamento vertical dos avatares (px de referência; +sobe)
+  const look = { name: 1, bubble: 1 }; // multiplicadores de tamanho do nome e do balão
   let currentActive = null;
   function layoutBackground() {
     if (!bgSprite) return;
@@ -50,8 +52,14 @@ export async function createScene(element) {
   }
   app.renderer.on('resize', layoutBackground);
 
-  function groundLine() { return app.screen.height - GROUND_MARGIN * uiScale(); }
+  // Sobe/desce a linha do chão dos avatares (px de referência × uiScale). Positivo = sobe.
+  function setGroundOffset(px) { groundOffset = Number(px) || 0; }
+  function groundLine() { return app.screen.height - (GROUND_MARGIN + groundOffset) * uiScale(); }
   function highlightPoint() { return { x: app.screen.width / 2, y: app.screen.height * 0.28 }; }
 
-  return { app, backgroundLayer, groundLayer, effectsLayer, highlightLayer, uiScale, groundLine, highlightPoint, setBackground, setTerrainOffset, setTerrainScale, applyTerrain };
+  // Multiplicadores de tamanho lidos pelo avatar (nome) e pelo balão, ajustáveis ao vivo.
+  function setNameScale(s) { look.name = Number(s) || 1; }
+  function setBubbleScale(s) { look.bubble = Number(s) || 1; }
+
+  return { app, backgroundLayer, groundLayer, effectsLayer, highlightLayer, uiScale, groundLine, highlightPoint, setBackground, setTerrainOffset, setTerrainScale, setGroundOffset, setNameScale, setBubbleScale, nameScale: () => look.name, bubbleScale: () => look.bubble, applyTerrain };
 }

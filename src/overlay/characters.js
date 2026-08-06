@@ -2,14 +2,14 @@ import { effectiveScale } from './scale.js';
 
 // Roster de personagens orientado a dados: characters.json (repo, CC0 padrão) +
 // characters.local.json (gitignored, sprites do usuário). Sprites de 16x16, N quadros.
-const ANIM_SPEED = 0.06;          // troca de quadro por ms de ticker
+const ANIM_SPEED = 0.09;          // troca de quadro por ms de ticker (0.06 = mais lento)
 const DEFAULTS = { frames: 2, scale: 2, facing: 'front' };
 
 // Seleção determinística (djb2) — pura e testável, sem PIXI/fetch.
 export function pickId(username, ids, overrides = {}) {
   const forced = overrides[username];
   if (forced && ids.includes(forced)) return forced;
-  // Sprites reservados por override (ex.: luffy do matheusmonck) não entram no
+  // Sprites reservados por override (fixados a um usuário) não entram no
   // sorteio dos demais — senão outros viewers "virariam" o mesmo personagem.
   // Trava: se sobrar vazio (tudo reservado), volta ao roster completo.
   const reserved = new Set(Object.values(overrides));

@@ -1,4 +1,4 @@
-import { loadConfig } from './config.js';
+import { loadConfig, configFrame } from './config.js';
 import { createStaticServer } from './static-server.js';
 import { createBridge } from './bridge.js';
 import { createConnectionManager } from './connection-manager.js';
@@ -15,7 +15,7 @@ function main() {
 
   const bridge = createBridge(http, (ws) => {
     const c = loadConfig();
-    ws.send(JSON.stringify({ type: 'config', avatarLimit: c.avatarLimit, inactivitySeconds: c.inactivitySeconds, stageMode: c.stageMode, onlyInteractors: c.onlyInteractors, likeThreshold: c.likeThreshold, effectsVolume: c.effectsVolume, avatarScale: c.avatarScale }));
+    ws.send(JSON.stringify(configFrame(c)));
     ws.send(JSON.stringify({ type: 'status', ...manager.getStatus() }));
   });
 

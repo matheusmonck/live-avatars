@@ -101,13 +101,13 @@ function emitFloaters(scene, x, y, kind, contextFn) {
 }
 
 export function reactionHearts(scene, avatar) {
-  const { x, y } = avatar.position();
-  emitFloaters(scene, x, y - 50 * scene.uiScale(), 'hearts', heartContext);
+  const { x, y } = avatar.headPoint();
+  emitFloaters(scene, x, y - 6 * scene.uiScale(), 'hearts', heartContext);
 }
 
 export function reactionStars(scene, avatar) {
-  const { x, y } = avatar.position();
-  emitFloaters(scene, x, y - 50 * scene.uiScale(), 'stars', starContext);
+  const { x, y } = avatar.headPoint();
+  emitFloaters(scene, x, y - 6 * scene.uiScale(), 'stars', starContext);
 }
 
 // ---------------------------------------------------------------------------
@@ -165,8 +165,8 @@ export function reactionFollow(scene, avatar, name, opts = {}) {
   const stage = opts.stage !== false;
   const ui = scene.uiScale();
   if (!stage) {
-    const { x, y } = avatar.position();
-    confettiBurst(scene, x, y - 50 * ui, TUNE.followFallback);
+    const { x, y } = avatar.headPoint();
+    confettiBurst(scene, x, y - 6 * ui, TUNE.followFallback);
     return;
   }
   const hp = scene.highlightPoint();
@@ -197,8 +197,8 @@ export function reactionGift(scene, avatar, event, opts = {}) {
   const stage = opts.stage !== false;
   const fx = giftScale(event.coins);
   if (!stage) {
-    const { x, y } = avatar.position();
-    confettiBurst(scene, x, y - 50 * scene.uiScale(), fx.confetti);
+    const { x, y } = avatar.headPoint();
+    confettiBurst(scene, x, y - 6 * scene.uiScale(), fx.confetti);
     popInPlace(scene, avatar, fx.scale);
     return;
   }

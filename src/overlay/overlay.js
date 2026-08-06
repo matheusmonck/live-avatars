@@ -5,7 +5,7 @@ import { loadCharacters } from './characters.js';
 
 // Valores padrão só até o backend enviar o frame { type: 'config' } (fonte de
 // verdade = config/config.json). O overlay se reconfigura ao recebê-lo.
-const DEFAULT_CONFIG = { avatarLimit: 18, inactivitySeconds: 150, stageMode: true, onlyInteractors: true, likeThreshold: 10, avatarScale: 2 };
+const DEFAULT_CONFIG = { avatarLimit: 18, inactivitySeconds: 150, stageMode: true, onlyInteractors: true, likeThreshold: 10, avatarScale: 2, avatarOffsetY: 0, nameScale: 1, bubbleScale: 1, bubblesEnabled: true, bubbleMax: 5, bubbleBadWords: [] };
 
 const statusEl = document.getElementById('status');
 

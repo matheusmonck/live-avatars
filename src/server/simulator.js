@@ -16,6 +16,13 @@ const TYPE_WEIGHTS = [
   ['share', 3],
 ];
 
+// Frases fake pros comentários simulados (pra testar o balão sem TikTok).
+const COMMENTS = [
+  'oi galera!!', 'kkkk', 'manda salve pra mim', 'primeiro!!', 'boa noite pessoal',
+  'que live top', 'segui aqui ❤️', 'faz o L', 'joga de novo', 'bora bora',
+  '❤️❤️❤️', 'melhor live da tiktok', 'me responde pfv', 'salve salve',
+];
+
 // Presentes: os baratos são comuns, os caros raros.
 const GIFTS = [
   { name: 'rosa', coins: 1, weight: 50 },
@@ -38,6 +45,7 @@ export function randomEvent(rnd = Math.random) {
   const username = NAMES[Math.floor(rnd() * NAMES.length) % NAMES.length];
   const type = weightedPick(TYPE_WEIGHTS, (t) => t[1], rnd())[0];
   const event = { type, username, name: username, avatarUrl: `https://i.pravatar.cc/80?u=${username}` };
+  if (type === 'comment') event.text = COMMENTS[Math.floor(rnd() * COMMENTS.length) % COMMENTS.length];
   if (type === 'like') event.count = Math.floor(rnd() * 10) + 1;
   if (type === 'gift') {
     const p = weightedPick(GIFTS, (g) => g.weight, rnd());

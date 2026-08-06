@@ -17,8 +17,8 @@ test('encaminha comentário normalizado', async () => {
     onEvent: (e) => recebidos.push(e),
   });
   await c.connect();
-  conexao.emit('chat', { user: { displayId: 'ana', nickname: 'Ana', avatarThumb: { urlList: ['f'] } }, content: 'oi' });
-  expect(recebidos[0]).toEqual({ type: 'comment', username: 'ana', name: 'Ana', avatarUrl: 'f' });
+  conexao.emit('chat', { user: { displayId: 'ana', nickname: 'Ana', avatarThumb: { urlList: ['f'] } }, comment: 'oi' });
+  expect(recebidos[0]).toEqual({ type: 'comment', username: 'ana', name: 'Ana', avatarUrl: 'f', text: 'oi' });
 });
 
 test('presente streakável intermediário não é encaminhado', async () => {

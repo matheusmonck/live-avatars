@@ -23,7 +23,7 @@ test('saveSprite manda POST em /admin/api/sprites', async () => {
 });
 
 test('putConfig manda PUT com stageMode e avatarScale no corpo', async () => {
-  await putConfig({ username: 'x', avatarLimit: 18, inactivitySeconds: 150, effectsVolume: 0.6, stageMode: false, onlyInteractors: false, likeThreshold: 1, avatarScale: 3, port: 8737 });
+  await putConfig({ username: 'x', avatarLimit: 18, inactivitySeconds: 150, effectsVolume: 0.6, stageMode: false, onlyInteractors: false, likeThreshold: 1, avatarScale: 3, avatarOffsetY: 0, nameScale: 1, bubbleScale: 1, port: 8737 });
   expect(fetch).toHaveBeenCalledWith('/admin/api/config', expect.objectContaining({
     method: 'PUT',
     body: expect.stringContaining('"stageMode":false'),

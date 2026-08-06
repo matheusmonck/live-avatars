@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
-import { getConfig, putConfig, putKey, type Config } from '../api';
+import { getConfig, putConfig, putConfigLive, putKey, type Config } from '../api';
 import { Card } from '../ui/Card';
 import { Field } from '../ui/Field';
 import { Button } from '../ui/Button';
@@ -14,9 +14,12 @@ export function ConfigTab() {
   if (!cfg) return <Card title="Configuração"><p className="muted">Carregando…</p></Card>;
   const num = (k: keyof Config) => (e: ChangeEvent<HTMLInputElement>) => setCfg({ ...cfg, [k]: Number(e.target.value) });
   const check = (k: keyof Config) => (e: ChangeEvent<HTMLInputElement>) => setCfg({ ...cfg, [k]: e.target.checked });
+  // Slider ao vivo: atualiza o estado local e manda um PUT parcial (o servidor
+  // faz merge e rebroadcast do configFrame — aplica no overlay na hora).
+  const live = (patch: Partial<Omit<Config, 'hasKey'>>) => { setCfg({ ...cfg, ...patch }); putConfigLive(patch); };
   const salvar = async (e: FormEvent) => {
     e.preventDefault();
-    const r = await putConfig({ username: cfg.username, avatarLimit: cfg.avatarLimit, inactivitySeconds: cfg.inactivitySeconds, effectsVolume: cfg.effectsVolume, stageMode: cfg.stageMode, onlyInteractors: cfg.onlyInteractors, likeThreshold: cfg.likeThreshold, avatarScale: cfg.avatarScale, port: cfg.port });
+    const r = await putConfig({ username: cfg.username, avatarLimit: cfg.avatarLimit, inactivitySeconds: cfg.inactivitySeconds, effectsVolume: cfg.effectsVolume, stageMode: cfg.stageMode, onlyInteractors: cfg.onlyInteractors, likeThreshold: cfg.likeThreshold, avatarScale: cfg.avatarScale, avatarOffsetY: cfg.avatarOffsetY, nameScale: cfg.nameScale, bubbleScale: cfg.bubbleScale, port: cfg.port });
     setMsg(r?.error ? r.error : 'Salvo ✓');
   };
   const salvarChave = async () => {
@@ -38,6 +41,23 @@ export function ConfigTab() {
           <Field label="Porta" type="number" min={1024} max={65535} value={cfg.port} onChange={num('port')} />
           <div className="row"><Button variant="primary" type="submit">Salvar</Button> <span className="muted">{msg}</span></div>
         </form>
+      </Card>
+      <Card title="Aparência (aplica ao vivo, arrastando)">
+        <label className="field">
+          <span>Posição vertical dos personagens: {cfg.avatarOffsetY}px (+ sobe / − desce)</span>
+          <input type="range" min={-400} max={400} step={5} value={cfg.avatarOffsetY}
+            onChange={(e) => live({ avatarOffsetY: Number(e.target.value) })} />
+        </label>
+        <label className="field">
+          <span>Tamanho dos nomes: {cfg.nameScale.toFixed(1)}×</span>
+          <input type="range" min={0.3} max={3} step={0.1} value={cfg.nameScale}
+            onChange={(e) => live({ nameScale: Number(e.target.value) })} />
+        </label>
+        <label className="field">
+          <span>Tamanho do texto do balão: {cfg.bubbleScale.toFixed(1)}×</span>
+          <input type="range" min={0.3} max={3} step={0.1} value={cfg.bubbleScale}
+            onChange={(e) => live({ bubbleScale: Number(e.target.value) })} />
+        </label>
       </Card>
       <Card title="Chave de API (Euler Stream)">
         <p className="muted">Status: {cfg.hasKey ? '✅ definida' : '⚠️ não definida'}</p>

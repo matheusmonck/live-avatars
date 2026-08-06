@@ -2,7 +2,7 @@ import { test, expect } from 'vitest';
 import { writeFileSync, readFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { validateConfig, DEFAULT_CONFIG, saveConfig, toRawConfig } from '../src/server/config.js';
+import { validateConfig, DEFAULT_CONFIG, saveConfig, toRawConfig, configFrame } from '../src/server/config.js';
 
 test('preenche valores padrão quando faltam campos', () => {
   const cfg = validateConfig({ usuarioTikTok: 'fulano' });
@@ -105,4 +105,82 @@ test('avatarScale: default 2, lê escalaAvatares e clampa (0.2–6)', () => {
 
 test('toRawConfig mapeia avatarScale para escalaAvatares', () => {
   expect(toRawConfig({ ...validateConfig({}), avatarScale: 2.5 }).escalaAvatares).toBe(2.5);
+});
+
+test('avatarOffsetY: default 0, lê ajusteVerticalAvatares, arredonda e clampa (-400..400)', () => {
+  expect(validateConfig({}).avatarOffsetY).toBe(0);
+  expect(validateConfig({ ajusteVerticalAvatares: 40 }).avatarOffsetY).toBe(40);
+  expect(validateConfig({ ajusteVerticalAvatares: -30 }).avatarOffsetY).toBe(-30);
+  expect(validateConfig({ ajusteVerticalAvatares: 12.6 }).avatarOffsetY).toBe(13);
+  expect(validateConfig({ ajusteVerticalAvatares: 9999 }).avatarOffsetY).toBe(400);
+  expect(validateConfig({ ajusteVerticalAvatares: -9999 }).avatarOffsetY).toBe(-400);
+});
+
+test('avatarOffsetY: round-trip PT e presença no configFrame', () => {
+  expect(toRawConfig({ ...validateConfig({}), avatarOffsetY: 25 }).ajusteVerticalAvatares).toBe(25);
+  expect(configFrame(validateConfig({ ajusteVerticalAvatares: 25 })).avatarOffsetY).toBe(25);
+});
+
+test('nameScale/bubbleScale: default 1, leem chaves PT e clampam (0.3–3)', () => {
+  const d = validateConfig({});
+  expect(d.nameScale).toBe(1);
+  expect(d.bubbleScale).toBe(1);
+  expect(validateConfig({ escalaNomes: 1.5 }).nameScale).toBe(1.5);
+  expect(validateConfig({ escalaNomes: 99 }).nameScale).toBe(3);
+  expect(validateConfig({ escalaNomes: 0 }).nameScale).toBe(0.3);
+  expect(validateConfig({ escalaBaloes: 2.2 }).bubbleScale).toBe(2.2);
+  expect(validateConfig({ escalaBaloes: 99 }).bubbleScale).toBe(3);
+});
+
+test('nameScale/bubbleScale: round-trip PT e presença no configFrame', () => {
+  const raw = toRawConfig({ ...validateConfig({}), nameScale: 1.2, bubbleScale: 0.8 });
+  expect(raw.escalaNomes).toBe(1.2);
+  expect(raw.escalaBaloes).toBe(0.8);
+  const frame = configFrame(validateConfig({ escalaNomes: 1.2, escalaBaloes: 0.8 }));
+  expect(frame.nameScale).toBe(1.2);
+  expect(frame.bubbleScale).toBe(0.8);
+});
+
+test('balões: defaults (ativo, max 5, lista vazia)', () => {
+  const cfg = validateConfig({});
+  expect(cfg.bubblesEnabled).toBe(true);
+  expect(cfg.bubbleMax).toBe(5);
+  expect(cfg.bubbleBadWords).toEqual([]);
+});
+
+test('balões: lê chaves PT e clampa/saneia', () => {
+  const cfg = validateConfig({ baloesAtivos: false, baloesMax: 99, palavroesBloqueados: [' Merda ', 'PORRA', ''] });
+  expect(cfg.bubblesEnabled).toBe(false);
+  expect(cfg.bubbleMax).toBe(20); // clamp max 20
+  expect(cfg.bubbleBadWords).toEqual(['merda', 'porra']); // trim + lowercase + remove vazios
+});
+
+test('balões: palavroesBloqueados não-array vira []', () => {
+  expect(validateConfig({ palavroesBloqueados: 'merda' }).bubbleBadWords).toEqual([]);
+});
+
+test('toRawConfig mapeia campos de balão de volta pras chaves PT', () => {
+  const raw = toRawConfig({ ...validateConfig({}), bubblesEnabled: false, bubbleMax: 3, bubbleBadWords: ['x'] });
+  expect(raw.baloesAtivos).toBe(false);
+  expect(raw.baloesMax).toBe(3);
+  expect(raw.palavroesBloqueados).toEqual(['x']);
+});
+
+test('saveConfig preserva chaves do disco que o payload não envia (ex.: lista de palavrões)', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'la-'));
+  const path = join(dir, 'config.json');
+  writeFileSync(path, JSON.stringify({ usuarioTikTok: 'x', palavroesBloqueados: ['merda'], baloesMax: 3 }));
+  // Payload do painel: sem os campos de balão.
+  saveConfig({ username: 'x', avatarLimit: 20, inactivitySeconds: 150, effectsVolume: 0.6, stageMode: true, port: 8737 }, path);
+  const gravado = JSON.parse(readFileSync(path, 'utf8'));
+  expect(gravado.palavroesBloqueados).toEqual(['merda']); // preservado, não resetado pra []
+  expect(gravado.baloesMax).toBe(3);
+});
+
+test('configFrame carrega os campos de balão pro overlay', () => {
+  const frame = configFrame(validateConfig({ baloesMax: 4 }));
+  expect(frame.type).toBe('config');
+  expect(frame.bubblesEnabled).toBe(true);
+  expect(frame.bubbleMax).toBe(4);
+  expect(frame.bubbleBadWords).toEqual([]);
 });

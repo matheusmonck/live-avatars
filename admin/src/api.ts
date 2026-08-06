@@ -1,6 +1,6 @@
 export type ConnState = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'offline' | 'error';
 export interface Status { type?: 'status'; state: ConnState; username?: string; room?: string; reason?: string }
-export interface Config { username: string; avatarLimit: number; inactivitySeconds: number; effectsVolume: number; stageMode: boolean; onlyInteractors: boolean; likeThreshold: number; avatarScale: number; port: number; hasKey: boolean }
+export interface Config { username: string; avatarLimit: number; inactivitySeconds: number; effectsVolume: number; stageMode: boolean; onlyInteractors: boolean; likeThreshold: number; avatarScale: number; avatarOffsetY: number; nameScale: number; bubbleScale: number; port: number; hasKey: boolean }
 export interface SpriteItem { id: string; frames: number; scale: number; facing: string; source: 'default' | 'local'; hidden: boolean }
 export interface TerrainState { active: string | null; items: { file: string; offset: number; scale: number }[] }
 export interface ApiResult { ok?: boolean; error?: string; [k: string]: unknown }
@@ -10,6 +10,8 @@ const jsonReq = (method: string, body: unknown) => ({ method, headers: { 'conten
 
 export const getConfig = (): Promise<Config> => fetch('/admin/api/config').then(asJson);
 export const putConfig = (c: Omit<Config, 'hasKey'>): Promise<ApiResult> => fetch('/admin/api/config', jsonReq('PUT', c)).then(asJson);
+// Atualização parcial ao vivo (slider): o servidor faz merge e rebroadcast do configFrame.
+export const putConfigLive = (patch: Partial<Omit<Config, 'hasKey'>>): Promise<ApiResult> => fetch('/admin/api/config', jsonReq('PUT', patch)).then(asJson);
 export const putKey = (signApiKey: string): Promise<ApiResult> => fetch('/admin/api/key', jsonReq('PUT', { signApiKey })).then(asJson);
 export const getStatus = (): Promise<Status> => fetch('/admin/api/status').then(asJson);
 export const startConnection = (): Promise<ApiResult> => fetch('/admin/api/start', { method: 'POST' }).then(asJson);

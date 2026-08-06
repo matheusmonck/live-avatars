@@ -12,6 +12,12 @@ export const DEFAULT_CONFIG = {
   onlyInteractors: true,
   likeThreshold: 10,
   avatarScale: 2,
+  avatarOffsetY: 0,
+  nameScale: 1,
+  bubbleScale: 1,
+  bubblesEnabled: true,
+  bubbleMax: 5,
+  bubbleBadWords: [],
 };
 
 function clamp(value, min, max, fallback) {
@@ -25,6 +31,12 @@ function bool(value, fallback) {
   if (value === "true") return true;
   if (value === "false") return false;
   return fallback;
+}
+
+// Lista de strings saneada: aparadas, minúsculas, sem vazios. Não-array vira [].
+function strList(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map((v) => String(v ?? "").trim().toLowerCase()).filter(Boolean);
 }
 
 // Lê o config.json (chaves em PT — contrato do usuário) e devolve objeto EN.
@@ -41,6 +53,14 @@ export function validateConfig(raw) {
     onlyInteractors: bool(raw.soQuemInterage, DEFAULT_CONFIG.onlyInteractors),
     likeThreshold: Math.round(clamp(raw.coracoesParaAparecer, 1, 1000, DEFAULT_CONFIG.likeThreshold)),
     avatarScale: clamp(raw.escalaAvatares, 0.2, 6, DEFAULT_CONFIG.avatarScale),
+    // Deslocamento vertical dos avatares (px de referência 1920). Positivo = sobe.
+    avatarOffsetY: Math.round(clamp(raw.ajusteVerticalAvatares, -400, 400, DEFAULT_CONFIG.avatarOffsetY)),
+    // Multiplicadores de tamanho do nome (@) e do texto do balão (aplicam ao vivo).
+    nameScale: clamp(raw.escalaNomes, 0.3, 3, DEFAULT_CONFIG.nameScale),
+    bubbleScale: clamp(raw.escalaBaloes, 0.3, 3, DEFAULT_CONFIG.bubbleScale),
+    bubblesEnabled: bool(raw.baloesAtivos, DEFAULT_CONFIG.bubblesEnabled),
+    bubbleMax: Math.round(clamp(raw.baloesMax, 0, 20, DEFAULT_CONFIG.bubbleMax)),
+    bubbleBadWords: strList(raw.palavroesBloqueados),
   };
 }
 
@@ -56,6 +76,33 @@ export function toRawConfig(en) {
     soQuemInterage: en.onlyInteractors,
     coracoesParaAparecer: en.likeThreshold,
     escalaAvatares: en.avatarScale,
+    ajusteVerticalAvatares: en.avatarOffsetY,
+    escalaNomes: en.nameScale,
+    escalaBaloes: en.bubbleScale,
+    baloesAtivos: en.bubblesEnabled,
+    baloesMax: en.bubbleMax,
+    palavroesBloqueados: en.bubbleBadWords,
+  };
+}
+
+// Frame 'config' enviado ao overlay via WS. Centralizado aqui pra não divergir
+// entre o envio inicial (index.js) e o broadcast ao salvar (admin-api.js).
+export function configFrame(cfg) {
+  return {
+    type: "config",
+    avatarLimit: cfg.avatarLimit,
+    inactivitySeconds: cfg.inactivitySeconds,
+    stageMode: cfg.stageMode,
+    onlyInteractors: cfg.onlyInteractors,
+    likeThreshold: cfg.likeThreshold,
+    effectsVolume: cfg.effectsVolume,
+    avatarScale: cfg.avatarScale,
+    avatarOffsetY: cfg.avatarOffsetY,
+    nameScale: cfg.nameScale,
+    bubbleScale: cfg.bubbleScale,
+    bubblesEnabled: cfg.bubblesEnabled,
+    bubbleMax: cfg.bubbleMax,
+    bubbleBadWords: cfg.bubbleBadWords,
   };
 }
 
@@ -65,8 +112,15 @@ function caminhoConfig() {
 }
 
 // Grava a config (chaves PT, valores já saneados) e devolve o objeto EN validado.
+// Faz merge com o que já está no disco: só sobrescreve as chaves que vieram
+// definidas no payload, preservando o resto (ex.: campos que o painel /admin não
+// reenvia, como a lista de palavrões dos balões).
 export function saveConfig(en, configPath = caminhoConfig()) {
-  const cfg = validateConfig(toRawConfig(en));
+  let existing = {};
+  try { existing = JSON.parse(readFileSync(configPath, "utf8")); } catch {}
+  const merged = { ...existing };
+  for (const [k, v] of Object.entries(toRawConfig(en))) if (v !== undefined) merged[k] = v;
+  const cfg = validateConfig(merged);
   writeFileSync(configPath, JSON.stringify(toRawConfig(cfg), null, 2) + "\n", "utf8");
   return cfg;
 }

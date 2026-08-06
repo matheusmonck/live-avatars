@@ -1,4 +1,4 @@
-import { loadConfig as loadConfigReal, saveConfig as saveConfigReal, saveKey as saveKeyReal } from './config.js';
+import { loadConfig as loadConfigReal, saveConfig as saveConfigReal, saveKey as saveKeyReal, configFrame } from './config.js';
 import { listSprites as listSpritesReal, saveSprite as saveSpriteReal, deleteSprite as deleteSpriteReal, setSpriteHidden as setSpriteHiddenReal, setSpriteScale as setSpriteScaleReal } from './sprites.js';
 import { listTerrains as listTerrainsReal, saveTerrain as saveTerrainReal, setActiveTerrain as setActiveTerrainReal, deleteTerrain as deleteTerrainReal, setTerrainOffset as setTerrainOffsetReal, setTerrainScale as setTerrainScaleReal } from './terrains.js';
 import { listUsers as listUsersReal, setUser as setUserReal, removeUser as removeUserReal } from './users.js';
@@ -52,7 +52,7 @@ export function createAdminApi({
       const body = await readBody(req);
       try {
         const cfg = saveConfig(body);
-        bridge.broadcast({ type: 'config', avatarLimit: cfg.avatarLimit, inactivitySeconds: cfg.inactivitySeconds, stageMode: cfg.stageMode, onlyInteractors: cfg.onlyInteractors, likeThreshold: cfg.likeThreshold, effectsVolume: cfg.effectsVolume, avatarScale: cfg.avatarScale });
+        bridge.broadcast(configFrame(cfg));
         return json(res, 200, { ok: true });
       } catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
     }

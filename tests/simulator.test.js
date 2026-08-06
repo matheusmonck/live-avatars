@@ -23,3 +23,10 @@ test('evento de curtida traz count', () => {
   expect(e.type).toBe('like');
   expect(e.count).toBeGreaterThanOrEqual(1);
 });
+
+test('evento de comentário traz texto', () => {
+  const e = randomEvent(() => 0.55); // faixa ponderada de 'comment'
+  expect(e.type).toBe('comment');
+  expect(typeof e.text).toBe('string');
+  expect(e.text.length).toBeGreaterThan(0);
+});

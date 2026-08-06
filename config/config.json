@@ -1,8 +1,17 @@
 {
-  "usuarioTikTok": "judeudostand",
-  "limiteAvatares": 30,
+  "usuarioTikTok": "",
+  "limiteAvatares": 18,
   "inatividadeSegundos": 150,
   "volumeEfeitos": 0.6,
   "modoPalco": true,
-  "porta": 8737
+  "porta": 8737,
+  "soQuemInterage": true,
+  "coracoesParaAparecer": 10,
+  "escalaAvatares": 2,
+  "ajusteVerticalAvatares": 0,
+  "escalaNomes": 1,
+  "escalaBaloes": 1,
+  "baloesAtivos": true,
+  "baloesMax": 5,
+  "palavroesBloqueados": []
 }
