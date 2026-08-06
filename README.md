@@ -1,8 +1,10 @@
 # Live Avatars
 
-<img width="1983" height="793" alt="LIVE AVATARS LOGO" src="https://github.com/user-attachments/assets/4758854a-f75f-4db0-91df-095a4d0c78e2" />
+<img width="1983" height="793" alt="LIVE AVATARS LOGO" src="assets/logo.png" />
 
 Bonequinhos que reagem à sua live do TikTok (estilo Stream Avatars).
+
+<p align="center"><img src="assets/demo.gif" alt="Live Avatars em ação" width="640" /></p>
 
 ## Primeira vez
 1. Instale o [Node.js LTS](https://nodejs.org).
