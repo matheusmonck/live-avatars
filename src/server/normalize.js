@@ -10,8 +10,10 @@ function userData(raw) {
   };
 }
 
+// O texto do chat vem em `content` no proto v3 (usado pela tiktok-live-connector v2);
+// protos antigos (v1) usavam `comment` — mantido como fallback pra compatibilidade.
 export function normalizeComment(raw) {
-  return { type: 'comment', ...userData(raw) };
+  return { type: 'comment', ...userData(raw), text: String(raw?.content ?? raw?.comment ?? '') };
 }
 
 export function normalizeJoin(raw) {

@@ -8,10 +8,20 @@ import {
 // o usuário vem aninhado em `user` (displayId/nickname/avatarThumb).
 const base = { user: { displayId: 'fulano', nickname: 'Fulano', avatarThumb: { urlList: ['http://foto'] } } };
 
-test('comentário', () => {
-  expect(normalizeComment({ ...base, content: 'oi' })).toEqual({
-    type: 'comment', username: 'fulano', name: 'Fulano', avatarUrl: 'http://foto',
+// A tiktok-live-connector v2 usa o proto v3, onde o texto do chat vem em `content`.
+test('comentário inclui o texto do chat (proto v3: content)', () => {
+  expect(normalizeComment({ ...base, content: 'oi galera' })).toEqual({
+    type: 'comment', username: 'fulano', name: 'Fulano', avatarUrl: 'http://foto', text: 'oi galera',
   });
+});
+
+// Compat: protos antigos (v1) traziam o texto em `comment`.
+test('comentário aceita o campo legado `comment`', () => {
+  expect(normalizeComment({ ...base, comment: 'oi galera' }).text).toBe('oi galera');
+});
+
+test('comentário sem texto vira string vazia', () => {
+  expect(normalizeComment(base).text).toBe('');
 });
 
 test('entrar', () => {
