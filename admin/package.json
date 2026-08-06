@@ -1,6 +1,8 @@
 {
   "name": "live-avatars-admin",
   "private": true,
+  "description": "Painel de controle do Live Avatars.",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",

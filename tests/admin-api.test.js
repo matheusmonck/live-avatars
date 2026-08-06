@@ -223,12 +223,12 @@ test('PUT /admin/api/sprites/scale com erro devolve 400', async () => {
 
 test('GET /admin/api/users lista usuários', async () => {
   const deps = depsBase();
-  deps.listUsers = () => [{ username: 'ana', sprite: 'luffy', source: 'local', vip: false }];
+  deps.listUsers = () => [{ username: 'ana', sprite: 'ninja', source: 'local', vip: false }];
   await comServidor(deps, async (base) => {
     const r = await fetch(`${base}/admin/api/users`);
     expect(r.status).toBe(200);
     const j = await r.json();
-    expect(j[0]).toMatchObject({ username: 'ana', sprite: 'luffy' });
+    expect(j[0]).toMatchObject({ username: 'ana', sprite: 'ninja' });
   });
 });
 
@@ -236,9 +236,9 @@ test('PUT /admin/api/users chama setUser', async () => {
   const deps = depsBase();
   deps.setUser = vi.fn();
   await comServidor(deps, async (base) => {
-    const r = await fetch(`${base}/admin/api/users`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'ana', sprite: 'luffy' }) });
+    const r = await fetch(`${base}/admin/api/users`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'ana', sprite: 'ninja' }) });
     expect(r.status).toBe(200);
-    expect(deps.setUser).toHaveBeenCalledWith({ username: 'ana', sprite: 'luffy' });
+    expect(deps.setUser).toHaveBeenCalledWith({ username: 'ana', sprite: 'ninja' });
     expect(deps.bridge.broadcast).toHaveBeenCalledWith(expect.objectContaining({ type: 'users' }));
   });
 });

@@ -20,28 +20,28 @@ test('resolveEntry aplica defaults', () => {
 });
 
 test('resolveEntry respeita overrides', () => {
-  expect(resolveEntry({ id: 'link-minish-cap', frames: 10, facing: 'left' }, 'assets/characters-local')).toEqual({
-    id: 'link-minish-cap', frames: 10, scale: 2, facing: 'left', base: 'assets/characters-local',
+  expect(resolveEntry({ id: 'custom-sprite', frames: 10, facing: 'left' }, 'assets/characters-local')).toEqual({
+    id: 'custom-sprite', frames: 10, scale: 2, facing: 'left', base: 'assets/characters-local',
   });
 });
 
 test('pickId respeita override quando o alvo está no roster', () => {
-  expect(pickId('matheusmonck', ['hero', 'luffy', 'cap'], { matheusmonck: 'luffy' })).toBe('luffy');
+  expect(pickId('dave', ['hero', 'ninja', 'cap'], { dave: 'ninja' })).toBe('ninja');
 });
 test('pickId ignora override quando o alvo não está no roster (cai no hash)', () => {
   const ids = ['hero', 'cap', 'dog'];
-  expect(pickId('matheusmonck', ids, { matheusmonck: 'luffy' })).toBe(pickId('matheusmonck', ids));
-  expect(ids).toContain(pickId('matheusmonck', ids, { matheusmonck: 'luffy' }));
+  expect(pickId('dave', ids, { dave: 'ninja' })).toBe(pickId('dave', ids));
+  expect(ids).toContain(pickId('dave', ids, { dave: 'ninja' }));
 });
 test('sprite reservado por override é exclusivo: outros usuários nunca o recebem', () => {
-  const ids = ['frog', 'girl', 'hood', 'kid', 'miner', 'oldwoman', 'sage', 'woman', 'luffy'];
-  const overrides = { matheusmonck: 'luffy' };
-  // ana.costa e dan caíam em luffy pelo hash antes da correção (bug: "mais de um Luffy").
+  const ids = ['frog', 'girl', 'hood', 'kid', 'miner', 'oldwoman', 'sage', 'woman', 'ninja'];
+  const overrides = { dave: 'ninja' };
+  // ana.costa e dan caíam no sprite reservado pelo hash antes da correção (bug: "mais de um reservado").
   for (const u of ['ana.costa', 'dan', 'joao.p', 'bruninho', 'carla_m', 'fefa', 'gustavo_tk', 'isa']) {
-    expect(pickId(u, ids, overrides)).not.toBe('luffy');
+    expect(pickId(u, ids, overrides)).not.toBe('ninja');
   }
   // ...mas o dono do override continua recebendo o sprite reservado.
-  expect(pickId('matheusmonck', ids, overrides)).toBe('luffy');
+  expect(pickId('dave', ids, overrides)).toBe('ninja');
 });
 test('visibleRoster remove ocultos', () => {
   const entries = [{ id: 'hero' }, { id: 'dog' }, { id: 'cap' }];

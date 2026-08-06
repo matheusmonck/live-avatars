@@ -2,6 +2,11 @@
   "name": "live-avatars",
   "version": "0.1.0",
   "private": true,
+  "description": "Overlay de bonequinhos que reagem à sua live do TikTok (comentários, presentes, corações) — estilo Stream Avatars.",
+  "license": "MIT",
+  "author": "Kalley Matheus",
+  "repository": { "type": "git", "url": "https://github.com/matheusmonck/live-avatars.git" },
+  "keywords": ["tiktok", "live", "overlay", "obs", "avatars", "stream", "pixijs"],
   "type": "module",
   "scripts": {
     "dev": "node src/server/index.js",

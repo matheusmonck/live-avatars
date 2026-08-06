@@ -15,6 +15,7 @@ Bonequinhos que reagem à sua live do TikTok (estilo Stream Avatars).
 > Studio usando a **Câmera Virtual** do OBS (não precisa de stream key).
 
 1. Dê **duplo-clique em `iniciar.bat`**. Ele sobe o programa e abre o **Painel** no navegador.
+   *(macOS/Linux, ou sem o `.bat`: rode `npm install` uma vez e depois `npm run dev`, então abra `http://localhost:8737/admin`.)*
 2. No **Painel** (`http://localhost:8737/admin`): coloque seu **@ do TikTok**, cole a
    **chave do Euler Stream**, e — **quando você estiver ao vivo** — clique em **Iniciar**.
    O status mostra *conectado / offline / erro*.
@@ -67,7 +68,17 @@ Pelo **Painel** (recomendado) ou editando `config/config.json`:
 A chave de API fica em `config/config.local.json` (criado pelo Painel) — **não versionado, não compartilhe**.
 
 ## Personagens (sprites)
-Os avatares usam sprites definidos em `src/overlay/characters.json` (padrão, CC0) e
+Os avatares usam sprites definidos em `src/overlay/characters.json` (11 personagens
+padrão de **Luis Zuno / @ansimuz** — ver [Créditos](#créditos)) e
 `src/overlay/characters.local.json` (os seus, **locais/não versionados**). Adicione, oculte, remova
 e ajuste a escala pela aba **Sprites** do Painel; fixe o sprite/VIP de um @ pela aba **Usuários**.
-Guia manual: `docs/adicionar-sprites.md`.
+Guia manual: [`docs/adicionar-sprites.md`](docs/adicionar-sprites.md).
+
+## Licença
+Código sob licença [MIT](LICENSE). A arte dos sprites padrão tem licença própria
+(uso livre pessoal/comercial) — ver [Créditos](#créditos).
+
+## Créditos
+- **Sprites dos personagens:** Luis Zuno ([@ansimuz](https://ansimuz.itch.io/)), do
+  pacote *"A Meta Data Game"* (https://ansimuz.itch.io/a-meta-data-game).
+- Detalhes e demais créditos em [`CREDITS.md`](CREDITS.md).

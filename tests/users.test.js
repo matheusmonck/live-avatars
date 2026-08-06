@@ -9,7 +9,7 @@ function overlayTmp({ defaultOverrides = {}, localExtra = {} } = {}) {
   writeFileSync(
     join(dir, 'characters.json'),
     JSON.stringify({
-      characters: [{ id: 'hero' }, { id: 'luffy' }],
+      characters: [{ id: 'hero' }, { id: 'ninja' }],
       overrides: defaultOverrides,
     }),
   );
@@ -28,11 +28,11 @@ test('listUsers retorna vazio quando não há overrides nem vip', () => {
 });
 
 test('listUsers inclui entrada de override padrão', () => {
-  const dir = overlayTmp({ defaultOverrides: { matheusmonck: 'luffy' } });
+  const dir = overlayTmp({ defaultOverrides: { dave: 'ninja' } });
   const list = listUsers({ overlayDir: dir });
   expect(list).toContainEqual({
-    username: 'matheusmonck',
-    sprite: 'luffy',
+    username: 'dave',
+    sprite: 'ninja',
     source: 'default',
     vip: false,
   });
@@ -40,13 +40,13 @@ test('listUsers inclui entrada de override padrão', () => {
 
 test('listUsers inclui override local; local vence sobre padrão', () => {
   const dir = overlayTmp({
-    defaultOverrides: { matheusmonck: 'luffy' },
-    localExtra: { overrides: { matheusmonck: 'hero' } },
+    defaultOverrides: { dave: 'ninja' },
+    localExtra: { overrides: { dave: 'hero' } },
   });
   const list = listUsers({ overlayDir: dir });
-  const entry = list.find((u) => u.username === 'matheusmonck');
+  const entry = list.find((u) => u.username === 'dave');
   expect(entry).toEqual({
-    username: 'matheusmonck',
+    username: 'dave',
     sprite: 'hero',
     source: 'local',
     vip: false,
@@ -67,13 +67,13 @@ test('listUsers inclui usuário VIP sem override (sprite null, source local)', (
 test('listUsers faz union de default+local overrides+vip sem duplicatas', () => {
   const dir = overlayTmp({
     defaultOverrides: { alice: 'hero' },
-    localExtra: { overrides: { bob: 'luffy' }, vip: ['alice', 'carol'] },
+    localExtra: { overrides: { bob: 'ninja' }, vip: ['alice', 'carol'] },
   });
   const list = listUsers({ overlayDir: dir });
   const usernames = list.map((u) => u.username).sort();
   expect(usernames).toEqual(['alice', 'bob', 'carol']);
   expect(list.find((u) => u.username === 'alice')).toMatchObject({ vip: true, source: 'default', sprite: 'hero' });
-  expect(list.find((u) => u.username === 'bob')).toMatchObject({ vip: false, source: 'local', sprite: 'luffy' });
+  expect(list.find((u) => u.username === 'bob')).toMatchObject({ vip: false, source: 'local', sprite: 'ninja' });
   expect(list.find((u) => u.username === 'carol')).toMatchObject({ vip: true, source: 'local', sprite: null });
 });
 
@@ -158,7 +158,7 @@ test('setUser lança erro em sprite inexistente', () => {
 });
 
 test('setUser retorna o estado efetivo do usuário', () => {
-  const dir = overlayTmp({ defaultOverrides: { alice: 'luffy' } });
+  const dir = overlayTmp({ defaultOverrides: { alice: 'ninja' } });
   // Set only vip, sprite not overridden locally → sprite comes from default
   const result = setUser({ username: 'alice', vip: true }, { overlayDir: dir });
   // sprite/source reflect effective view (local takes precedence)
@@ -182,7 +182,7 @@ test('removeUser remove override local e vip', () => {
 
 test('removeUser strips @ e trim', () => {
   const dir = overlayTmp({
-    localExtra: { overrides: { bob: 'luffy' }, vip: ['bob'] },
+    localExtra: { overrides: { bob: 'ninja' }, vip: ['bob'] },
   });
   removeUser('  @bob  ', { overlayDir: dir });
   const local = JSON.parse(readFileSync(join(dir, 'characters.local.json'), 'utf8'));
