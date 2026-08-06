@@ -78,6 +78,12 @@ padrão de **Luis Zuno / @ansimuz** — ver [Créditos](#créditos)) e
 e ajuste a escala pela aba **Sprites** do Painel; fixe o sprite/VIP de um @ pela aba **Usuários**.
 Guia manual: [`docs/adicionar-sprites.md`](docs/adicionar-sprites.md).
 
+## Contribuir
+
+Veja [`CONTRIBUTING.md`](CONTRIBUTING.md) para o ambiente de desenvolvimento,
+como abrir issues e como enviar pull requests. Todos os espacos do projeto
+seguem o [`Código de Conduta`](CODE_OF_CONDUCT.md).
+
 ## Licença
 Código sob licença [MIT](LICENSE). A arte dos sprites padrão tem licença própria
 (uso livre pessoal/comercial) — ver [Créditos](#créditos).

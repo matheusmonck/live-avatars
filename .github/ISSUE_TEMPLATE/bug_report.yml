@@ -1,0 +1,35 @@
+name: Relatar bug
+description: Reporte um comportamento inesperado do Live Avatars
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: descricao
+    attributes:
+      label: Descricao
+      description: O que aconteceu e o que era esperado?
+      placeholder: Descreva o problema de forma objetiva.
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Passos para reproduzir
+      description: Liste os passos mais curtos possiveis.
+      placeholder: "1. Inicie o servidor...\n2. Abra o Painel...\n3. Veja o erro..."
+    validations:
+      required: true
+  - type: input
+    id: ambiente
+    attributes:
+      label: Ambiente
+      description: Sistema operacional, versao do Node.js e navegador usados.
+      placeholder: "Windows 11, Node 22, Chrome"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs ou mensagens de erro
+      description: Inclua apenas logs sem chaves, tokens ou dados pessoais.
+      render: text
