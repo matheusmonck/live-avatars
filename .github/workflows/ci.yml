@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            admin/package-lock.json
+
+      - name: Install dependencies (server + overlay)
+        run: npm ci
+
+      - name: Run tests (server + overlay)
+        run: npm test
+
+      - name: Install dependencies (admin panel)
+        run: npm --prefix admin ci
+
+      - name: Run tests (admin panel)
+        run: npm --prefix admin test
+
+      - name: Type-check and build (admin panel)
+        run: npm --prefix admin run build
