@@ -84,3 +84,13 @@ Código sob licença [MIT](LICENSE). A arte dos sprites padrão tem licença pr�
 - **Sprites dos personagens:** Luis Zuno ([@ansimuz](https://ansimuz.itch.io/)), do
   pacote *"A Meta Data Game"* (https://ansimuz.itch.io/a-meta-data-game).
 - Detalhes e demais créditos em [`CREDITS.md`](CREDITS.md).
+
+## Apoie o projeto
+
+Se o Live Avatars te ajudar e você quiser retribuir, pode mandar um **Pix** (chave por e-mail):
+
+```
+matheusmonck@gmail.com
+```
+
+Qualquer valor ajuda a manter o projeto no ar — obrigado! 💜
