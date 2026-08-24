@@ -1,0 +1,9 @@
+node_modules
+dist
+admin/dist
+admin/node_modules
+package-lock.json
+admin/package-lock.json
+src/overlay/assets
+assets
+*.min.js

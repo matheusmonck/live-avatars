@@ -5,20 +5,43 @@
   "description": "Overlay de bonequinhos que reagem à sua live do TikTok (comentários, presentes, corações) — estilo Stream Avatars.",
   "license": "MIT",
   "author": "Kalley Matheus",
-  "repository": { "type": "git", "url": "https://github.com/matheusmonck/live-avatars.git" },
-  "keywords": ["tiktok", "live", "overlay", "obs", "avatars", "stream", "pixijs"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matheusmonck/live-avatars.git"
+  },
+  "keywords": [
+    "tiktok",
+    "live",
+    "overlay",
+    "obs",
+    "avatars",
+    "stream",
+    "pixijs"
+  ],
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "node src/server/index.js",
     "sim": "node src/server/index.js --sim",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "tiktok-live-connector": "^2.4.3",
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.9.1",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.11.0",
+    "prettier": "^3.9.6",
     "vitest": "^2.1.0"
   }
 }
