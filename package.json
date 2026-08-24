@@ -8,6 +8,9 @@
   "repository": { "type": "git", "url": "https://github.com/matheusmonck/live-avatars.git" },
   "keywords": ["tiktok", "live", "overlay", "obs", "avatars", "stream", "pixijs"],
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "node src/server/index.js",
     "sim": "node src/server/index.js --sim",
