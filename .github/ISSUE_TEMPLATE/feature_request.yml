@@ -1,0 +1,24 @@
+name: Pedido de recurso
+description: Sugira uma melhoria ou novo recurso para o Live Avatars
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema ou oportunidade
+      description: O que voce quer resolver ou melhorar?
+    validations:
+      required: true
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Proposta
+      description: Como voce imagina o recurso funcionando?
+    validations:
+      required: true
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas consideradas
+      description: Outras solucoes ou workarounds que voce ja tentou.
