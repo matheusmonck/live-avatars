@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies (server + overlay)
         run: npm ci
 
+      - name: Lint (server + overlay)
+        run: npm run lint
+
       - name: Run tests (server + overlay)
         run: npm test
 
