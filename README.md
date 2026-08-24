@@ -96,3 +96,7 @@ matheusmonck@gmail.com
 ```
 
 Qualquer valor ajuda a manter o projeto no ar — obrigado! 💜
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
