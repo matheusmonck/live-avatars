@@ -1,5 +1,6 @@
 node_modules/
 dist/
+admin/dist/
 *.log
 .DS_Store
 .env
@@ -10,4 +11,3 @@ src/overlay/characters.local.json
 src/overlay/assets/terrain-local/
 src/overlay/terrain.local.json
 admin/node_modules
-!admin/dist
