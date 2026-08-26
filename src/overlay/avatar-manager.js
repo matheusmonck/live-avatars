@@ -35,6 +35,15 @@ export function createManager(scene, cfg) {
   const likeCounts = new Map(); // username -> soma de corações (pro limiar de aparição)
   const bubbleQueue = createBubbleQueue({ max: settings.bubbleMax });
   const bubbleTimers = new Map(); // username -> timeoutId do sumiço do balão
+  const effectListeners = new Set();
+
+  function onEffect(listener) {
+    if (typeof listener === 'function') effectListeners.add(listener);
+  }
+
+  function emitEffect(type) {
+    for (const listener of effectListeners) listener(type);
+  }
 
   function ensure(event, canSpawn) {
     if (!canSpawn && !registry.has(event.username)) return null;
@@ -123,9 +132,18 @@ export function createManager(scene, cfg) {
       case 'comment': v.jump(); showComment(event); break;
       case 'join': break;
       case 'like': R.reactionHearts(scene, v); break;
-      case 'follow': R.reactionFollow(scene, v, event.name || event.username, { stage: settings.stageMode }); break;
-      case 'share': R.reactionStars(scene, v); break;
-      case 'gift': R.reactionGift(scene, v, event, { stage: settings.stageMode }); break;
+      case 'follow':
+        R.reactionFollow(scene, v, event.name || event.username, { stage: settings.stageMode });
+        emitEffect('follow');
+        break;
+      case 'share':
+        R.reactionStars(scene, v);
+        emitEffect('share');
+        break;
+      case 'gift':
+        R.reactionGift(scene, v, event, { stage: settings.stageMode });
+        emitEffect('gift');
+        break;
     }
   }
 
@@ -155,6 +173,7 @@ export function createManager(scene, cfg) {
     if (Number.isFinite(newCfg.avatarOffsetY)) { settings.avatarOffsetY = newCfg.avatarOffsetY; scene.setGroundOffset(newCfg.avatarOffsetY); repositionAll(); }
     if (Number.isFinite(newCfg.nameScale)) { settings.nameScale = newCfg.nameScale; scene.setNameScale(newCfg.nameScale); rescaleAll(); }
     if (Number.isFinite(newCfg.bubbleScale)) { settings.bubbleScale = newCfg.bubbleScale; scene.setBubbleScale(newCfg.bubbleScale); rescaleAll(); }
+    if (Number.isFinite(newCfg.effectsVolume)) settings.effectsVolume = newCfg.effectsVolume;
     if (typeof newCfg.bubblesEnabled === 'boolean') settings.bubblesEnabled = newCfg.bubblesEnabled;
     if (Array.isArray(newCfg.bubbleBadWords)) settings.bubbleBadWords = newCfg.bubbleBadWords;
     if (Number.isFinite(newCfg.bubbleMax)) {
@@ -188,5 +207,5 @@ export function createManager(scene, cfg) {
     ensureVips();
   }
 
-  return { handle, configure, onSprites, onUsers };
+  return { handle, configure, onSprites, onUsers, onEffect };
 }

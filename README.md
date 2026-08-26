@@ -64,7 +64,7 @@ Pelo **Painel** (recomendado) ou editando `config/config.json`:
 - `limiteAvatares` — máximo de bonequinhos na tela.
 - `escalaAvatares` — tamanho global dos avatares (padrão 2; ajustável ao vivo no Painel).
 - `inatividadeSegundos` — tempo sem interagir até o bonequinho sair.
-- `volumeEfeitos` — 0 a 1. (Obs.: som ainda não implementado; sem efeito por ora.)
+- `volumeEfeitos` — 0 a 1. Controla os sons curtos de follow, share e presente.
 - `soQuemInterage` — se `true` (padrão), só aparece quem comenta, manda presente ou acumula corações.
 - `coracoesParaAparecer` — quantos corações somados fazem o avatar aparecer (padrão 10).
 - `porta` — porta local (padrão 8737).
