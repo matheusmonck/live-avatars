@@ -30,9 +30,13 @@ Antes de abrir um pull request, rode a suite completa:
 
 ```bash
 npm test
+npm --prefix admin run build
 ```
 
 Se o seu cambio afeta comportamento ao vivo, use o modo simulador e descreva no PR como reproduzir a situacao.
+
+O Painel nao e versionado em `admin/dist`. O CI ja compila o painel, e um
+deploy local precisa rodar `npm --prefix admin run build` antes de servir o app.
 
 ## Seguranca e credenciais
 
