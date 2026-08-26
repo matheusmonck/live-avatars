@@ -36,3 +36,13 @@ test('máscara respeita fronteira: não mexe em substring', () => {
 test('sem lista de palavrão, não mascara nada', () => {
   expect(sanitizeBubble('merda total')).toBe('merda total');
 });
+
+test('não divide emojis com modificador ou sequência ZWJ', () => {
+  expect(sanitizeBubble('a👍🏽b', { maxChars: 2 })).toBe('a…');
+  expect(sanitizeBubble('👨‍👩‍👧', { maxChars: 2 })).toBe('👨‍👩‍👧');
+});
+
+test('mantém bandeiras como um caractere visível', () => {
+  expect(sanitizeBubble('🇨🇱🇦🇷', { maxChars: 1 })).toBe('…');
+  expect(sanitizeBubble('🇨🇱🇦🇷', { maxChars: 2 })).toBe('🇨🇱🇦🇷');
+});
